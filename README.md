@@ -1,6 +1,9 @@
 # essential_scripts
 Essential Scripts utilized by members and collaborators of DSCoLab
 
+# Using this repo
+It is expected that there will be continued development to many of the scripts contained in this repositiory. Thus, to maintain certainty of what versions were used for your particular projects, it is recommended to create a personal clone of this repo. Then, you can personally control timing of any pulls.
+
 # Contributing
 This repo is currently under construction and in a rapid population phase.
 
@@ -16,11 +19,17 @@ you would like to add:
   - Be sure to update the Files Index below if needed.
   - Final form should coalesce around a single code path.
 - Documentation Expectations:
-  - For organization, seems best to keep documentation linked with our scripts as much as possible.  Inside the files themselves is a good way to achieve that goal.
-  - Standard for bash functions = create a documentation readout if the function is called without required parameters (or with --help)
-  - Standard for R / Python / other scripts and functions = A comment chunk at the top of the script.
+  - For bash functions = create a documentation readout if the function is called without required parameters (or with --help)
+  - For R / Python / other scripts and functions = A comment chunk at the top of the script.
+
+# Expectations for all 'Library' scripts
+
+- (This list will likely grows in the future.)
+- Running bash script with no arguments, -h, or --help should print usage and purpose of script.
+- Programs should have no hard-coded paths and allow users to pass paths in.
+- Scripts should not contain passwords or any encryption keys.
 
 # Index
-| File | Purpose | Maintainer |
-| --- | --- | --- |
-| just-an-example.R | Creates a function for doing a thing if you source('just-an-example.R') | Dan
+| File | Purpose | Maintainer | Library |
+| --- | --- | --- | --- |
+| just-an-example.R | Creates a function for doing a thing if you source('just-an-example.R') | Dan | No |
