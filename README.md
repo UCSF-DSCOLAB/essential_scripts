@@ -32,4 +32,4 @@ you would like to add:
 # Index
 | File | Purpose | Maintainer | Library |
 | --- | --- | --- | --- |
-| just-an-example.R | Creates a function for doing a thing if you source('just-an-example.R') | Dan | No |
+| single_cell/add_module_score_from_excel_gene_sets.R | R code for reading gene sets from an excel file, running Seurat::AddModuleScore, and visualizing the results | Dan | No |
