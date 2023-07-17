@@ -2,10 +2,10 @@
 
 ### Primary goal of the function: sub-clustering of a previously fully-processed Seruat object containing
 # 1. Takes in a Seurat object which should be the target subset of your original / full object, then re-runs pre-processing steps from right after the data normalization stage.
-#    Object assumptions:
+#    **Object / Processing Plan assumptions**:
 #      - Gene expression data in an "RNA" assay
 #      - Protein expression data in an "ADT" assay
-#      - batch correction methodologies used had been harmony for RNA and Seurat's rpca-based integration approach for ADT.
+#      - batch correction methodologies are harmony for RNA and Seurat's rpca-based integration approach for ADT.
 #      - any metadata intended to be regressed out in scaling steps, given to 'rna_vars_to_regress' and/or 'adt_vars_to_regress' already exist in the object.
 #      - a metadata holding library identities exists and is a factor with levels ordered by batch. (See 'integration_references' input details for why.)
 # 2. Runs highly variable gene selection, scaling, pca, and harmony batch correction for the RNA assay
