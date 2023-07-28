@@ -38,12 +38,7 @@ suppressPackageStartupMessages({
   library(dittoSeq)
 })
 
-log_message <- function(...) {
-  cat("[", format(Sys.time()), "]", ..., "\n")
-}
-
-##### This function loops through cell types, performing a single DGE comparison within each one. #####
-# You *might* never need to call this fucntion directly.  See it as just an "inner" function that's called by the main function that I want you to call. 
+##### This function loops through cell types, performing a single DGE comparison within each one. ##### 
 dgeMAST <- function(
   object, # Seurat or SCE object
   cells.group.by, # metadata name holding clusters or annotations to explore within
@@ -58,6 +53,10 @@ dgeMAST <- function(
   # MAST method tweaks
   mast.freq.expressed.min = 0.2 # Fraction. A gene filter before dge calculation: Minimal percent of cells (among targets groups, within each targetted cell set) that must express a gene for it to be considered.
 ) {
+
+  log_message <- function(...) {
+    cat("[", format(Sys.time()), "]", ..., "\n")
+  }
 
   if (!isMeta(cells.group.by, object)) stop("'cells.group.by', ", cells.group.by,", is not a metadata of 'object'")
   if (!isMeta(dge.group.by, object)) stop("'dge.group.by', ", dge.group.by,", is not a metadata of 'object'")
