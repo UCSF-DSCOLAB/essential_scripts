@@ -25,7 +25,7 @@
 ### Outputs:
 # Two output methods can be used:
 #  - The re-processed Seurat object can be saved to a .Rds file by giving a filepath to the "rds_name" input.
-#  - The re-processed Seurat object can also be output directly as the result of the fucntion call when "output" is set to TRUE, which is the default.
+#  - The re-processed Seurat object can also be output directly as the result of the function call when "output" is set to TRUE, which is the default.
 
 ### Usage notes:
 # You may need to run 'options(future.globals.maxSize = 8000 * 1024^2)' prior to calling the function in order to avoid memory usage complaint/error within the ADT reprocessing loop. Per https://github.com/satijalab/seurat/issues/1845
@@ -39,9 +39,9 @@ suppressPackageStartupMessages({
 process_normalized_citeseq_data <- function(
   ### Primary Inputs
   object, # The Seurat object to target, which should already be subset to your cells of interest
-  log_prefix = "", # String which will be added to the beginning of any timestamped log lines. E.g.: "T cells: "
+  log_prefix = "", # String which will be added to the beginning of any timestamped log lines. E.g.: "T cells: ". Useful when multiple subsets will be processed with the same log file.
   rds_name = NULL, # String or NULL. File path naming where to output the processed Seurat as an Rds file.  If left NULL, the object will not be written to a file.
-  output = TRUE, # Boolean. Whether to return the Seurat object, or not, at the end. 
+  output = TRUE, # Boolean. Whether to return the Seurat object, or not, at the end.
   ### Secondary Inputs
   rna_vars_to_regress = c("nCount_RNA", "percent.mt", "S.Score", "G2M.Score"), # Value is passed to Seurat::ScaleData()'s 'vars.to.regress' input in RNA assay re-scaling.
   adt_vars_to_regress = c("nCount_ADT", "S.Score", "G2M.Score"), # Value is passed to Seurat::ScaleData()'s 'vars.to.regress' input in ADT assay re-scaling after integration.
@@ -78,9 +78,9 @@ process_normalized_citeseq_data <- function(
   sobjs.list <- lapply(libs, function(lib) {
     diet_object[, diet_object[[integration_split_by, drop = TRUE]]==lib]
   })
-  print_message(log_prefix, "ADT: Scaling and PCA per library\nWorking on: ")
+  print_message(log_prefix, "ADT: Scaling and PCA per library\n\tWorking on:")
   sobjs.list <- lapply(seq_along(libs), function(x) {
-    if (x > 1) { cat(", ") }
+    cat("\n\t", libs[x], sep = "")
     cat(libs[x])
     x <- sobjs.list[[x]]
     x <- ScaleData(x, features = features, verbose = FALSE)
@@ -145,12 +145,3 @@ process_normalized_citeseq_data <- function(
     object
   }
 }
-
-print_message("Subsetting and processing:")
-process_normalized_citeseq_data(
-  all_data[,keep],
-  rds_name = 't_data.Rds',
-  integration_references = ref_libs
-)
-
-print_message("DONE")
