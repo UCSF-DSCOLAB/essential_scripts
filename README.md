@@ -33,4 +33,4 @@ you would like to add:
 | File | Purpose | Maintainer | Library |
 | --- | --- | --- | --- |
 | single_cell/add_module_score_from_excel_gene_sets.R | R code for reading gene sets from an excel file, running Seurat::AddModuleScore, and visualizing the results | Dan | No |
-| single_cell/CITEseq/subcluster_citeseq.R | When `source()`'d, defines an R function for subclustering Seurat CITEseq data | Dan | No |
+| single_cell/CITEseq/subcluster/function.R | When `source()`'d, defines an R function for subclustering Seurat CITEseq data. A script.R is also included to provide example usage. | Dan | No |

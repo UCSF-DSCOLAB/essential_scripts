@@ -5,7 +5,7 @@
 
 # Replace this path with the path to your own data
 full_object_rds_file <- "/path/to/full_data.Rds"
-source("/path/to/subcluster_function.R")
+source("/path/to/single_cell/CITEseq/subcluster/function.R")
 # I recommend doing a DRYRUN for double-checking proper subseting and reference setup.
 # Set this to FALSE to run processing!
 DRYRUN <- TRUE
