@@ -1,6 +1,6 @@
 ##### This script provides example usage of the 'process_normalized_citeseq_data' function from the adjacent script.
 ### This script is intended to be copied elsewhere and edited for direct use
-### Lots of log outputs to always know what's going on!
+### It generates lots of timestamped log messages to always know what's going on.
 ### Here I'm subsetting on broad annotations that aren't yet in the object, so will be loading those in, and then subsetting to all the Tcell calls
 
 # Replace this path with the path to your own data
@@ -57,14 +57,15 @@ ref_libs <- grep("SCG1|SCG5", levels(all_data$orig.ident))
 print_message("References for ADT integration:\n\t", paste0(paste0(ref_libs, ": ", levels(all_data$orig.ident)[ref_libs]), collapse = "\n\t"))
 
 if (DRYRUN) {
-  print_message("Check the above logs for correctness. If all loks good re-run with DRYRUN set to FALSE.")
+  print_message("DRYRUN=TRUE. Check the above logs for correctness. If all loks good re-run with DRYRUN set to FALSE.")
 } else {
-  print_message("Subsetting and re-processing:")
+  print_message("DRYRUN=FALSE. Moving on with to processing the subset data:")
   process_normalized_citeseq_data(
     all_data[,keep],
     rds_name = 't_data.Rds',
     integration_split_by = "orig.ident",
     integration_references = ref_libs
+    # NOTE: There are lots more control-points than just these! See the function definition for details.
   )
 }
 

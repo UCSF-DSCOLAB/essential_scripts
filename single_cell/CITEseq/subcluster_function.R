@@ -1,6 +1,12 @@
 ##### This script initializes a function called 'process_normalized_citeseq_data' which aims to achieve full "sub-clustering" of a Seurat object containing CITEseq data
+# To use:
+# - 'source("path/to/this/file")'
+# - Optional but often necessary, details below: 'options(future.globals.maxSize = 8000 * 1024^2)'
+# - Subset / prepare the data you plan to process.
+# - Adjust inputs as needed.
+# - Invoke the 'process_normalized_citeseq_data()' function!
 
-### Primary goal of the function: sub-clustering of a previously fully-processed Seruat object containing
+### Primary steps of the function:
 # 1. Takes in a Seurat object which should be the target subset of your original / full object, then re-runs pre-processing steps from right after the data normalization stage.
 #    **Object / Processing Plan assumptions**:
 #      - Gene expression data in an "RNA" assay
@@ -11,8 +17,8 @@
 # 2. Runs highly variable gene selection, scaling, pca, and harmony batch correction for the RNA assay
 # 3. Runs scaling on PCA in a per-library fashion and uses Seurat's 'IntegrateData' methodology for batch corretion of ADT data, pulling a PCA run on the integrated data as the batch corrected dimensionality reduction assay here.
 # 4. Runs WNN and umap and clustering based on the WNN.
-# 5. Optionally runs umap and clustering based on the RNA assay only
-# 6. Returns this 'fully' re-processed object which has been, in part, re-clustered within its chosen subset of cells.
+# 5. Optionally also runs umap and clustering based on the RNA assay only
+# 6. Returns this re-processed object which has been, in part, re-clustered within its chosen subset of cells.
 
 ### R Package Requirements:
 # - Seurat v4 or later, originally tested in 4.1.1
@@ -24,7 +30,7 @@
 
 ### Outputs:
 # Two output methods can be used:
-#  - The re-processed Seurat object can be saved to a .Rds file by giving a filepath to the "rds_name" input.
+#  - The re-processed Seurat object can be saved to a .Rds file by giving a filepath to the "rds_path" input.
 #  - The re-processed Seurat object can also be output directly as the result of the function call when "output" is set to TRUE, which is the default.
 
 ### Usage notes:
@@ -40,7 +46,7 @@ process_normalized_citeseq_data <- function(
   ### Primary Inputs
   object, # The Seurat object to target, which should already be subset to your cells of interest
   log_prefix = "", # String which will be added to the beginning of any timestamped log lines. E.g.: "T cells: ". Useful when multiple subsets will be processed with the same log file.
-  rds_name = NULL, # String or NULL. File path naming where to output the processed Seurat as an Rds file.  If left NULL, the object will not be written to a file.
+  rds_path = NULL, # String or NULL. File path naming where to output the processed Seurat as an Rds file.  If left NULL, the object will not be written to a file.
   output = TRUE, # Boolean. Whether to return the Seurat object, or not, at the end.
   ### Secondary Inputs
   rna_vars_to_regress = c("nCount_RNA", "percent.mt", "S.Score", "G2M.Score"), # Value is passed to Seurat::ScaleData()'s 'vars.to.regress' input in RNA assay re-scaling.
@@ -53,10 +59,21 @@ process_normalized_citeseq_data <- function(
   adt_pca_dims = 1:20, # Number vector. The ADT PCs to utilize in WNN, and subsequent clustering and UMAP calculations.
   clustering_resolutions = seq(0.1, 2.0, 0.1), # Number vector used for the resolution parameter of Seurat::FindClusters() calls.
   rna_only_umap_and_clustering = TRUE # Boolean, whether or not to calculate a umap and clusterings based only on the RNA assay.
+  warn_if_no_rds = TRUE, # Logical. Controls whether or not a message-level warning will be given from the start if the re-processed object will only be returned as output, and not first saved to a file.
   ) {
 
   print_message <- function(...) {
     cat("[ ", format(Sys.time()), " ] ", ..., "\n", sep = "")
+  }
+
+  if (is.null(rds_path)) {
+    warn_start <- ifelse(log_prefix=="", "", paste0("For prefix '", log_prefix, ": "))
+    if (!output) {
+      stop(warn_start, "No 'rds_path' given && 'output' set to FALSE. Nothing would be returned!")
+    }
+    if (warn_when_no_rds) {
+      message(warn_start, "No 'rds_path' given. Object will be returned as output but not saved to disk within this function. (Set 'warn_if_no_rds = FALSE' to turn off this message.)")
+    }
   }
   
   print_message(log_prefix, "Starting processing")
@@ -80,13 +97,11 @@ process_normalized_citeseq_data <- function(
   })
   print_message(log_prefix, "ADT: Scaling and PCA per library\n\tWorking on:")
   sobjs.list <- lapply(seq_along(libs), function(x) {
-    cat("\n\t", libs[x], sep = "")
-    cat(libs[x])
+    cat("\t", libs[x], "\n", sep = "")
     x <- sobjs.list[[x]]
     x <- ScaleData(x, features = features, verbose = FALSE)
     x <- RunPCA(x, features = features, verbose = FALSE)
   })
-  cat('\n')
   names(sobjs.list) <- libs
   print_message(log_prefix, "ADT: Finding integration anchors")
   immune.anchors <- FindIntegrationAnchors(
@@ -98,10 +113,10 @@ process_normalized_citeseq_data <- function(
     verbose = FALSE)
   print_message(log_prefix, "ADT: Integrating")
   adt_int <- IntegrateData(anchorset = immune.anchors, new.assay.name = "integrated.ADT", verbose = FALSE)
-  DefaultAssay(adt_int) <- 'integrated.ADT'
+  DefaultAssay(adt_int) <- "integrated.ADT"
   print_message(log_prefix, "ADT: Scaling and PCA of Integrated ADT data")
   adt_int <- ScaleData(adt_int, features = features, vars.to.regress = adt_vars_to_regress, verbose = FALSE)
-  adt_int <- RunPCA(adt_int, reduction.name = 'int.adt.pca', reduction.key = 'integratedADTpca_', verbose = FALSE)
+  adt_int <- RunPCA(adt_int, reduction.name = "int.adt.pca", reduction.key = "integratedADTpca_", verbose = FALSE)
   print_message(log_prefix, "ADT: Pulling integrated ADT assay and PCA to in-progress object")
   stopifnot(all(colnames(adt_int) %in% colnames(object)))
   stopifnot(all(colnames(object) %in% colnames(adt_int)))
@@ -134,9 +149,9 @@ process_normalized_citeseq_data <- function(
 
   print_message(log_prefix, "Object Processing Complete!")
   
-  if (!is.null(rds_name)) {
-    print_message(log_prefix, "Saving to '", rds_name, "' ...")
-    saveRDS(object, file = rds_name)
+  if (!is.null(rds_path)) {
+    print_message(log_prefix, "Saving to '", rds_path, "' ...")
+    saveRDS(object, file = rds_path)
     print_message(log_prefix, "Saved")
   }
 
