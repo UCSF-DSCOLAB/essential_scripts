@@ -58,8 +58,8 @@ process_normalized_citeseq_data <- function(
   rna_pca_dims = 1:30, # Number vector. The RNA PCs to utilize in WNN (and optional RNAonly) clustering and UMAP calculations.
   adt_pca_dims = 1:20, # Number vector. The ADT PCs to utilize in WNN, and subsequent clustering and UMAP calculations.
   clustering_resolutions = seq(0.1, 2.0, 0.1), # Number vector used for the resolution parameter of Seurat::FindClusters() calls.
-  rna_only_umap_and_clustering = TRUE # Boolean, whether or not to calculate a umap and clusterings based only on the RNA assay.
-  warn_if_no_rds = TRUE, # Logical. Controls whether or not a message-level warning will be given from the start if the re-processed object will only be returned as output, and not first saved to a file.
+  rna_only_umap_and_clustering = TRUE, # Boolean, whether or not to calculate a umap and clusterings based only on the RNA assay.
+  warn_if_no_rds = TRUE # Logical. Controls whether or not a message-level warning will be given from the start if the re-processed object will only be returned as output, and not first saved to a file.
   ) {
 
   print_message <- function(...) {
