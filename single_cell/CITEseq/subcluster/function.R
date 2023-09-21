@@ -14,13 +14,14 @@
 #      - batch correction methodologies are harmony for RNA and either harmony or Seurat's rpca-based integration approach for ADT.
 #      - Aside from "S.Score" and "G2M.Score" which will be (re-)created internally via CellCycleScoring on the RNA assay, any metadata intended to be regressed out in scaling steps and given to 'rna_vars_to_regress' and/or 'adt_vars_to_regress' should already exist in the object.
 #      - When using Seurat's rpca-based integration approach for ADT batch correction, a metadata holding library identities must exist and should be a factor with levels ordered by processing/sequencing batch. (See 'integration_references' input details for why.)
-# 2. Runs DietSeurat to clean old dimensionality reductions and 
-# 2. Runs CellCycleScoring, highly variable gene selection, scaling, pca, and harmony batch correction for the RNA assay
-# 3a. If using Seurat's rpca-based integration for ADT batch correction: Runs scaling on PCA in a per-library fashion and uses Seurat's 'IntegrateData' methodology for batch corretion of ADT data, pulling a PCA run on the integrated data as the batch corrected dimensionality reduction assay here.
-# 3b. If using harmony for ADT batch correction: Runs scaling, pca, and harmony batch correction on all non-isotype markers of the ADT assay
-# 4. Runs WNN and umap and clustering based on the WNN.
-# 5. Optionally also runs umap and clustering based on the RNA assay only
-# 6. Returns this re-processed object which has been, in part, re-clustered within its chosen subset of cells.
+# 2. Runs DietSeurat to clean old dimensionality reductions and possible SCT assays
+# 3. Runs CellCycleScoring, highly variable gene selection, scaling, pca, and harmony batch correction on the RNA assay
+# 4. Uses RunHarmony to batch correct the RNA-side.
+# 5a. If using Seurat's rpca-based integration for ADT batch correction: Runs scaling on PCA in a per-library fashion and uses Seurat's 'IntegrateData' methodology for batch corretion of ADT data, pulling a PCA run on the integrated data as the batch corrected dimensionality reduction assay here.
+# 5b. If using harmony for ADT batch correction: Runs scaling, pca, and harmony batch correction.
+# 6. Runs WNN and umap and clustering based on the WNN.
+# 7. Optionally also runs umap and clustering based on the RNA assay only
+# 8. Returns this re-processed object which has been, in part, re-clustered within its chosen subset of cells.
 
 ### R Package Requirements:
 # - Seurat v4 or later, originally tested in 4.1.1
@@ -124,7 +125,7 @@ process_normalized_citeseq_data <- function(
     print_message(log_prefix, "ADT: Batch Correcting PCA with Harmony")
     object <- RunHarmony(object, group.by.vars = harmony_group_by, reduction = "adt.pca", reduction.save = "adt.harmony", verbose = FALSE)
     adt_reduction <- "adt.harmony"
-  } else if (adt_batch_correction_method == "rpca-integration"){
+  } else if (adt_batch_correction_method == "rpca-integration") {
     print_message(log_prefix, "ADT: Selecting non-isotypes, then subsetting to per-library objects")
     DefaultAssay(object) <- "ADT"
     diet_object <- DietSeurat(object, counts = TRUE, data = TRUE, scale.data = FALSE, assays = "ADT", dimreducs = NULL, graphs = NULL, misc = FALSE)
