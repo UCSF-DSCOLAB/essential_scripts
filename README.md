@@ -34,3 +34,5 @@ you would like to add:
 | --- | --- | --- | --- |
 | single_cell/add_module_score_from_excel_gene_sets.R | R code for reading gene sets from an excel file, running Seurat::AddModuleScore, and visualizing the results | Dan | No |
 | single_cell/CITEseq/subcluster/function.R | When `source()`'d, defines an R function for subclustering Seurat CITEseq data. A script.R is also included to provide example usage. | Dan | No |
+| single_cell/umap_by_cluster.R | When `source()`d, defines a couple of R functions `umap_by_cluster()` and `get_plot_grid_layout`, which generate UMAPs split by cluster/any grouping variable along with marginal density plots. | Ravi | No |
+
