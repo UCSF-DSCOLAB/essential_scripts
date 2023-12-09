@@ -65,6 +65,7 @@ umap_by_cluster <- function(sobj, reduction, cluster_clm, subset_n = -1, suggest
   for(i in 1:length(groups) ) {
   	clust = groups[i]
     cm_tmp = cell_metadata_sub %>% filter(cluster == clust)
+    is_unimodal = TRUE
     if(suggest_multimodal)
       is_unimodal = LaplacesDemon::is.unimodal(cm_tmp$UMAP1) & LaplacesDemon::is.unimodal(cm_tmp$UMAP2)
     p = ggplot(cm_tmp, aes(UMAP1, UMAP2)) +
