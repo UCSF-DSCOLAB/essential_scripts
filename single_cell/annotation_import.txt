@@ -1,0 +1,144 @@
+Import annotations from a csv file into a Seurat or SCE object
+
+Description:
+
+     Import annotations from a csv file into a Seurat or SCE object
+
+Usage:
+
+     importAnnotations(
+       object,
+       annots_file,
+       annots_regex = "^annot",
+       sep = ",",
+       stop_if_overwrite = FALSE,
+       verbose = TRUE
+     )
+     
+Arguments:
+
+  object: A Seurat or SingleCellExperiment object, or a String
+          representing the file path of an RDS file containing such an
+          object
+
+annots_file: String representing the file path of the annotations csv
+          you wish to import from. See the details section for file
+          structure requirements.
+
+annots_regex: A String representing a regex that imported annotation
+          columns will be expected to match. Alternatively, set to NULL
+          to import from all columns of the annotation file.
+
+     sep: A String denoting the field separator in the ‘annots_file’
+
+stop_if_overwrite: Logical which sets whether the function should warn
+          (FALSE, default) versus error (TRUE) if annotation import
+          would overwrite metadata that already exist in the ‘object’
+
+ verbose: Logical which controls whether log messages should be output
+
+Details:
+
+     The primary role of this function is to map annotations from the
+     ‘annots_file’ to clustering in the single-cell ‘object’.
+
+     It expects ‘annots_file’ to target a csv file containing named
+     columns where:
+
+        • the first column is named after the cell-metadata of ‘object’
+          holding the target clustering. This metadata must exist in
+          the ‘object’, and the values of the column should match to
+          all of the unique values (cluster names) contained in that
+          metadata.
+
+        • all other columns either represent annotations of said
+          clusters, or notes (a.k.a. free text).
+
+        • when columns containing notes exist, columns containing
+          annotations must be distinguishable via a regex-definable
+          naming scheme. The default expectation is that annotation
+          column names start with "annot", while notes column names
+          will not.
+
+     How it works:
+
+       1. If ‘object’ is given an RDS file path rather than the Seurat
+          or SCE object itself, the object is first loaded in
+
+       2. The annotation csv is then read in with
+          ‘read.csv(annots_file, header = TRUE, sep = sep)’
+
+       3. The cell-metadata matching the first column name (clustering)
+          of the annotations csv is extracted from the ‘object’
+
+       4. An index map is built between values of this clustering
+          metadata and values in this first column
+
+       5. Columns matching the ‘annots_regex’ regex are pulled in to
+          the object making use of 1) the column name as the metadata
+          name, 2) the pre-built index map.
+
+Value:
+
+     A Seurat or SCE object, with clustering-mapped annotations added
+     to the per-cell metadata
+
+Author(s):
+
+     Daniel Bunis
+
+Examples:
+
+     # We'll use the Seurat example dataset for this example
+     sobj <- SeuratObject::pbmc_small
+     
+     # Our annots_file will be a csv version of:
+     example_annotations <- data.frame(
+       RNA_snn_res.1 = 0:2,
+       annots_broad = c("T", "Myeloid", "B"),
+       notes = c("has CD3E expression", "has MS4A1 expression", "has CD14 expression")
+     )
+     print(example_annotations)
+     
+     if (!file.exists("annotation_import_example.csv")) {
+       write.csv(
+         example_annotations,
+         file = "annotation_import_example.csv",
+         row.names = FALSE
+       )
+     }
+     
+     # By default, only columns whose name starts with "annot" will be pulled in
+     #   because the default 'annots_regex = "^annot"'
+     sobj <- importAnnotations(
+       object = sobj,
+       annots_file = "annotation_import_example.csv")
+       
+     # As we can see, the annotations are now pulled in:
+     table(sobj$RNA_snn_res.1, sobj$annots_broad)
+     
+     # Adjust 'annots_regex' if needed, OR set it to NULL to pull in from all columns
+     #   of the 'annots_file'.
+     ## Here, only columns starting with "note" will be pulled in 
+     sobj <- importAnnotations(
+       object = sobj,
+       annots_file = "annotation_import_example.csv",
+       annots_regex = "^note")
+     ## Here, ALL columns will be pulled in 
+     sobj <- importAnnotations(
+       object = sobj,
+       annots_file = "annotation_import_example.csv",
+       annots_regex = NULL)
+     
+     # Notice that in this last run, it warned when the 'annots_broad' metadata,
+     #   which was already added in the first run, was being brought in again.
+     # If you want to have the function error out instead of overwriting such
+     #   metadata, set 'stop_if_overwrite' to TRUE.
+     ## Not run:
+     
+     sobj <- importAnnotations(
+       object = sobj,
+       annots_file = "annotation_import_example.csv",
+       stop_if_overwrite = TRUE)
+     ## End(Not run)
+     
