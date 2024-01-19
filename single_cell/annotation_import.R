@@ -55,6 +55,7 @@
 #' }
 #' 
 #' # By default, only columns whose name starts with "annot" will be pulled in
+#' #   because the default 'annots_regex = "^annot"'
 #' sobj <- importAnnotations(
 #'   object = sobj,
 #'   annots_file = "annotation_import_example.csv")
@@ -64,13 +65,19 @@
 #'
 #' # Adjust 'annots_regex' if needed, OR set it to NULL to pull in from all columns
 #' #   of the 'annots_file'.
+#' ## Here, only columns starting with "note" will be pulled in 
+#' sobj <- importAnnotations(
+#'   object = sobj,
+#'   annots_file = "annotation_import_example.csv",
+#'   annots_regex = "^note")
+#' ## Here, ALL columns will be pulled in 
 #' sobj <- importAnnotations(
 #'   object = sobj,
 #'   annots_file = "annotation_import_example.csv",
 #'   annots_regex = NULL)
 #'
-#' # Notice that in this second run, we are warned when the 'annots_broad' metadata
-#' #   which was already added in the first run, is being brought in again.
+#' # Notice that in this last run, it warned when the 'annots_broad' metadata,
+#' #   which was already added in the first run, was being brought in again.
 #' # If you want to have the function error out instead of overwriting such
 #' #   metadata, set 'stop_if_overwrite' to TRUE.
 #' \dontrun{
