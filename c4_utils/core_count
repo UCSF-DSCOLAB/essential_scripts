@@ -23,9 +23,11 @@ fi
 while [[ "$#" -gt 0 ]]; do
     case $1 in
         -v|--verbose) verbose=true ;;
+        -u=*|--user=*) target_user="${1#*=}" ;;
         -u|--user) target_user="$2"; shift ;;
+        -p=*|--partition=*) IFS='|' read -ra partitions <<< "${1#*=}";;
         -p|--partition) IFS='|' read -ra partitions <<< "$2"; shift ;;
-        *) echo "Please use the -u or -p flag, eg: -u $1 or -p $1"; exit 1 ;;
+        *) echo "Unknown option: $1"; exit 1 ;;
     esac
     shift
 done
