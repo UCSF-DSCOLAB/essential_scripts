@@ -1,0 +1,81 @@
+#!/bin/bash
+
+# Default values
+verbose=false
+target_user=$USER
+partitions=("krummellab")
+
+# Display help message if --help option is provided
+if [ "$1" == "--help" ] || [ "$1" == "-h" ]; then
+    echo "Usage: $0 [-v] [-u username] [-p \"partition1|partition2|...\"]"
+    echo "Sum the number of cores from active jobs for a username."
+    echo "If no username is provided, the current \$USER will be used."
+    echo "If no partition is provided, the default partition is krummellab."
+    echo ""
+    echo "Options:"
+    echo "  -v, --verbose       Enable verbose mode"
+    echo "  -u, --user username   Specify a username"
+    echo "  -p, --partition \"partition1|partition2|...\" Specify one or more partitions in quotes, separated by | (default: krummellab)"
+    exit 0
+fi
+
+# Parse command-line options
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+        -v|--verbose) verbose=true ;;
+        -u|--user) target_user="$2"; shift ;;
+        -p|--partition) IFS='|' read -ra partitions <<< "$2"; shift ;;
+        *) echo "Please use the -u or -p flag, eg: -u $1 or -p $1"; exit 1 ;;
+    esac
+    shift
+done
+
+if [ "$verbose" = true ]; then
+    echo "Running core_count against $target_user for partitions: ${partitions[@]}..."
+fi
+
+if [ "$verbose" = true ]; then
+    echo "Collecting job ids and their core stats... this might take a few seconds..."
+fi
+
+# Initialize total sum
+total_sum=0
+
+# Run squeue and filter jobs based on the partitions and the first 8 characters of your username
+for partition in "${partitions[@]}"; do
+    partition_sum=0
+    for monitoring_job_id in $(squeue | grep ${partition:0:9} | grep ${target_user:0:8} | awk '{print $1}'); do
+        # Use seff to get efficiency and resource usage information for each job
+        seff_output=$(/krummellab/data1/rebeccagj/scripts/bash/seff $monitoring_job_id)
+
+        # Extract nodes and cores per node information
+        nodes=$(echo "$seff_output" | grep -E "Nodes:|Cores:" | awk '{print $2}')
+        cores_per_node=$(echo "$seff_output" | grep -E "Cores per node:" | awk '{print $4}')
+
+        # If cores_per_node is not available, use cores information
+        if [ -z "$cores_per_node" ]; then
+            cores_per_node=$nodes
+        fi
+
+        # Calculate the cores for the job based on nodes and cores per node
+        var_cores=$((nodes * cores_per_node))
+
+        # Accumulate the cores value for the partition
+        ((partition_sum += var_cores))
+
+        # Accumulate the total cores value
+        ((total_sum += var_cores))
+    done
+
+    # If several partition were piped in, then print the individual sums
+    if [ "${#partitions[@]}" -gt 1 ]; then
+        echo "${target_user}'s cores for partition $partition: $partition_sum"
+    fi
+done
+
+# Print the total sum
+if [ "${#partitions[@]}" -gt 1 ]; then
+    echo "${target_user}'s total sum cores for all partitions: $total_sum"
+else
+    echo "${target_user}'s cores for partition $partition: $total_sum"
+fi
