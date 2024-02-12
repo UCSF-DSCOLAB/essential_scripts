@@ -46,45 +46,48 @@ if [ "$verbose" = true ]; then
     echo "This might take a few seconds..."
 fi
 
-total_sum=0
+# Declare an associative array to store sums for each partition
+declare -A partition_sums
+
 core_collector() {
     local partition="$1"
     local target_user="$2"
-    local partition_sum=0
 
-    for monitoring_job_id in $(squeue | grep "${partition:0:9}" | grep "${target_user:0:8}" | awk '{print $1}'); do
+    partition_sums[$partition]=0  # Reset partition sum for the current partition
+
+    for monitoring_job_id in $(squeue | grep "${partition:0:8}" | grep "${target_user:0:8}" | awk '{print $1}'); do
         # Use seff to get efficiency and resource usage information for each job
         seff_output=$(/krummellab/data1/rebeccagj/scripts/bash/seff "$monitoring_job_id")
         
         # Extract nodes and cores per node information
         nodes=0
         cores_per_node=0
+
         nodes=$(echo "$seff_output" | grep -E "Nodes:|Cores:" | awk '{print $2}')
-        cores_per_node=$(echo "$seff_output" | grep -E "Cores per node:" | awk '{print $4}')
 
-        # Calculate the cores for the job based on nodes and cores per node
-        partition_sum=$((nodes * cores_per_node))
-
-        # Accumulate the total cores value
-        ((total_sum += partition_sum))
+        if echo "$seff_output" | grep -q "per"; then
+            cores_per_node=$(echo "$seff_output" | grep -E "Cores per node:" | awk '{print $4}')
+        fi
+                
+        if [[ $cores_per_node =~ ^[1-9][0-9]*$ ]]; then
+            partition_sums[$partition]=$((partition_sums[$partition] + (nodes * cores_per_node)))
+        else
+            partition_sums[$partition]=$((partition_sums[$partition] + nodes))
+        fi
     done
-
-    echo "$total_sum"
 }
 
 for target_user in $target_users_list; do
-    total_sum=0  # Reset total_sum variable
-    
     # Print the individual partition sums
     for partition in "${partitions[@]}"; do
-        partition_sum=0
-        partition_sum=$(core_collector "$partition" "$target_user")
-        echo "${target_user}'s cores for partition $partition: $partition_sum"
+        core_collector "$partition" "$target_user"
+        echo "${target_user}'s cores for partition $partition: ${partition_sums[$partition]}"
     done
-
-    # Print the total sum
+    
+    # Calculate total sum of cores across all partitions
+    total_sum=0
     for partition in "${partitions[@]}"; do
-        total_sum=$(core_collector "$partition" "$target_user")
+        ((total_sum += partition_sums[$partition]))
     done
     
     # Print the total sum
