@@ -15,7 +15,7 @@
 #      - Aside from "S.Score" and "G2M.Score" which will be (re-)created internally via CellCycleScoring on the RNA assay, any metadata intended to be regressed out in scaling steps and given to 'rna_vars_to_regress' and/or 'adt_vars_to_regress' should already exist in the object.
 #      - When using Seurat's rpca-based integration approach for ADT batch correction, a metadata holding library identities must exist and should be a factor with levels ordered by processing/sequencing batch. (See 'integration_references' input details for why.)
 # 2. Runs DietSeurat to clean old dimensionality reductions and possible SCT assays
-# 3. Runs CellCycleScoring, highly variable gene selection, scaling, pca, and harmony batch correction on the RNA assay
+# 3. Runs CellCycleScoring, highly variable gene selection, scaling, pca
 # 4. Uses RunHarmony to batch correct the RNA-side.
 # 5a. If using Seurat's rpca-based integration for ADT batch correction: Runs scaling on PCA in a per-library fashion and uses Seurat's 'IntegrateData' methodology for batch corretion of ADT data, pulling a PCA run on the integrated data as the batch corrected dimensionality reduction assay here.
 # 5b. If using harmony for ADT batch correction: Runs scaling, pca, and harmony batch correction.
@@ -40,6 +40,7 @@
 #  - Assays:
 #    - RNA
 #    - ADT - even if no batch correction is performed on the ADT-side, the 'counts' and 'data' slots of this assay are retained.
+#    - any additional assays given to 'assays_keep', *with only 'counts' and 'data' slots retained.*
 #    - integrated.ADT - default / *only when 'adt_batch_correction_method = "rpca-integration"'*. Contains the rpca-integrated ADT data matrices. Except for QC, there's little need to look at this assay. Continue using the standard 'ADT' assay for protein expresssion analysis and visualization 
 #  - Dimensionality reduction names:
 #    - pca: RNA-side PCA, pre-batch correction
@@ -48,7 +49,7 @@
 #    - adt.pca: ADT-side PCA, pre-batch correction, *only when 'adt_batch_correction_method = "harmony"'*
 #    - adt.harmony: ADT-side harmonized PCA, *only when 'adt_batch_correction_method = "harmony"'*
 #    - umap: WNN-based umap, *only when 'adt_batch_correction_method' is NOT "none"*
-#    - umap_rna: WNN-based umap, *only when 'rna_only_umap_and_clustering = TRUE'*
+#    - umap_rna: RNA-based umap, *only when 'rna_only_umap_and_clustering = TRUE'*
 #  - Clustering Prefixes:
 #    - wsnn_: WNN-based clustering, *only when 'adt_batch_correction_method' is NOT "none"*
 #    - RNA_snn_: RNA-only clustering, *only when 'rna_only_umap_and_clustering = TRUE'*
@@ -82,6 +83,7 @@ process_normalized_citeseq_data <- function(
   adt_pca_dims = 1:20, # Number vector. The ADT PCs to utilize in WNN, and subsequent clustering and UMAP calculations.
   clustering_resolutions = seq(0.1, 2.0, 0.1), # Number vector used for the resolution parameter of Seurat::FindClusters() calls.
   rna_only_umap_and_clustering = TRUE, # Boolean. Controls whether or not to calculate a umap and clusterings based only on the RNA assay (*This is in addition to WNN-based umap and clustering unless 'adt_batch_correction_method' was set to FALSE).
+  assays_keep = c("RNA", "ADT"), # String vector giving names of all assays whose raw and normalized counts you wish to retain.  Can be a larger set than exists, but if you have data in another assay that you will want to access later, it must be named here or re-added later.
   warn_if_no_rds = TRUE # Logical. Controls whether or not a message-level warning will be given from the start if the re-processed object will only be returned as output, and not first saved to a file.
   ) {
 
@@ -103,10 +105,15 @@ process_normalized_citeseq_data <- function(
   if (!rna_only_umap_and_clustering && adt_batch_correction_method=="none") {
     stop(warn_start, "No reclustering requested. Either set 'rna_only_umap_and_clustering' to TRUE or change 'adt_batch_correction_method' from 'none'.")
   }
+  if (!all(c("RNA", "ADT") %in% assays_keep)) {
+    warning(warn_start, "Ensuring both 'RNA' and 'ADT' given to 'assays_keep'. Without these assays, this function cannot run.")
+    assays_keep <- unique(c(assays_keep, "RNA", "ADT"))
+  }
   
   print_message(log_prefix, "Starting processing")
   DefaultAssay(object) <- "RNA"
-  object <- DietSeurat(object, counts = TRUE, data = TRUE, scale.data = FALSE, assays = c("RNA", "ADT"), dimreducs = NULL, graphs = NULL, misc = FALSE)
+  assays_keep <- assays_keep[assays_keep %in% Assays(object)]
+  object <- DietSeurat(object, counts = TRUE, data = TRUE, scale.data = FALSE, assays = assays_keep, dimreducs = NULL, graphs = NULL, misc = FALSE)
 
   print_message(log_prefix, "RNA: Running Cell Cycle Scoring")
   object <- CellCycleScoring(object, s.features = cc.genes$s.genes, g2m.features = cc.genes$g2m.genes, nbin = 12)
