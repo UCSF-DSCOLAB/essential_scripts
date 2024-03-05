@@ -10,7 +10,8 @@
 #' @param dont_warn Logical. Set to TRUE to block output of \code{color.var} and \code{split.by} input-related warnings.
 #' @return A ggplot object where colored hexagonal bins are used to summarize cell density of \code{clustering}-identities across the UMAP (or dimensionality reduction) space.
 #'
-#' Alternatively, if \code{data.out=TRUE}, a list containing
+#' Alternatively, if \code{data.out=TRUE}, a list containing two slots is output: the plot (named 'plot'), and a data.table containing the underlying data for target cells (named 'data').
+#' @seealso \code{\link[dittoSeq]{dittoDimHex}}
 #' @author Daniel Bunis
 #' @examples
 #' # We'll use the Seurat example dataset for this example
