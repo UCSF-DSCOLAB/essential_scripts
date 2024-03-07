@@ -29,7 +29,7 @@ prune.SNN.param = 1/20
 
 
 # load the data
-load(file=sprintf('%s/merged_processed.RData', IN_DIR_HARMONY))
+load(file=sprintf('%s/merged_processed.RData', IN_DIR_HARMONY)) 
 sobj = merged_data
 rm(merged_data); gc()
 
@@ -40,7 +40,8 @@ integ_data = subset(integ_data, cells=olap_ids)
 
 # add the ADT
 DefaultAssay(sobj) = "RNA"
-adt_assay = sobj[['ADT']] # save this for later, remove for integration
+adt_assay = integ_data@assays[["ADT"]] #sobj[['ADT']] # save this for later, remove for integration
+# NOTE THAT sobj[["ADT"]] is only correct if the `processed` and not `filtered` .RDS was used for harmony
 sobj[['ADT']] = NULL
 sobj[["integrated.ADT"]] = integ_data@assays[["integrated.ADT"]]
 DefaultAssay(sobj) = "integrated.ADT"
