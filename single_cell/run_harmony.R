@@ -34,7 +34,7 @@ if (!file.exists(sprintf('%s/merged_temp.RData', OUT_DIR))){
   
   sobjs.list <- lapply(list_samples, FUN = function(SAMPLE_NAME) {
 
-    sobj = readRDS(sprintf("%s/%s/automated_processing/%s_filtered.rds", IN_DIR,
+    sobj = readRDS(sprintf("%s/%s/automated_processing/%s_processed.rds", IN_DIR,
                                    SAMPLE_NAME, SAMPLE_NAME))
     
     DefaultAssay(sobj) = "RNA" 
