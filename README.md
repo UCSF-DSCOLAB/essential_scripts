@@ -36,4 +36,5 @@ you would like to add:
 | single_cell/density_plotter.R | When `source()`'d, defines an R function that plots density of clusters across the umap space | Dan | Yes |
 | single_cell/annotation_import.R | When `source()`'d, defines an R function for pulling annotations into Seurat or SCE objects from a csv. An [example 'annots_file'](single_cell/annotation_import_example.csv) and [txt version of the function documentation](single_cell/annotation_import.txt) is also included. | Dan | Yes | 
 | single_cell/CITEseq/subcluster/function.R | When `source()`'d, defines an R function for subclustering Seurat CITEseq data. A script.R is also included to provide example usage. | Dan | No |
+| single_cell/RNAseq/process/function.R | When `source()`'d, defines an R function for (re-)processing Seurat RNAseq data. A script.R is also included to provide example usage. | Dan | No |
 | count_cores | a command line executable that allows a user to 1) self-monitor their active cores on `krummellab` nodes (default) or 2) use optional flags to query all DSCoLab active jobs to test for core monopoly | Rebecca | Yes |
