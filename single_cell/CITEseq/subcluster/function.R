@@ -136,7 +136,6 @@ process_normalized_citeseq_data <- function(
     print_message(log_prefix, "ADT: Selecting non-isotypes, then subsetting to per-library objects")
     DefaultAssay(object) <- "ADT"
     diet_object <- DietSeurat(object, counts = TRUE, data = TRUE, scale.data = FALSE, assays = "ADT", dimreducs = NULL, graphs = NULL, misc = FALSE)
-    DefaultAssay(object) <- "RNA"
     libs <- levels(as.factor(diet_object[[integration_split_by, drop = TRUE]]))
     sobjs.list <- lapply(libs, function(lib) {
       diet_object[, diet_object[[integration_split_by, drop = TRUE]]==lib]
@@ -146,8 +145,8 @@ process_normalized_citeseq_data <- function(
       cat("\t", libs[x], "\n", sep = "")
       x <- sobjs.list[[x]]
       VariableFeatures(object, assay = "ADT") <- adt_features
-      x <- ScaleData(x, verbose = FALSE)
-      x <- RunPCA(x, verbose = FALSE)
+      x <- ScaleData(x, verbose = FALSE, assay = "ADT")
+      x <- RunPCA(x, verbose = FALSE, assay = "ADT")
     })
     names(sobjs.list) <- libs
     print_message(log_prefix, "ADT: Finding integration anchors")

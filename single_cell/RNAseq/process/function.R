@@ -96,7 +96,7 @@ process_normalized_rnaseq_data <- function(
   object <- FindNeighbors(object, reduction = "harmony", dims = pca_dims, verbose = FALSE)
   print_message(log_prefix, "UMAP")
   object <- RunUMAP(object, reduction = "harmony", dims = pca_dims, reduction.name = umap_name, reduction.key = "UMAP_", verbose = FALSE)
-  object <- RunUMAP(object, reduction = "harmony", dims = pca_dims, reduction.name = paste0(umap_name, "_no_harmony"), reduction.key = "UMAPnoHarmony_", verbose = FALSE)
+  object <- RunUMAP(object, reduction = "pca", dims = pca_dims, reduction.name = paste0(umap_name, "_no_harmony"), reduction.key = "UMAPnoHarmony_", verbose = FALSE)
   print_message(log_prefix, "Clustering")
   object <- FindClusters(object, algorithm = 2, resolution = clustering_resolutions, graph.name = "RNA_snn", verbose = FALSE)
 
