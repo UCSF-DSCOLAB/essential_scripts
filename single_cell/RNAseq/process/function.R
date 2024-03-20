@@ -90,7 +90,7 @@ process_normalized_rnaseq_data <- function(
   object <- ScaleData(object, vars.to.regress = vars_to_regress, verbose = FALSE)
   object <- RunPCA(object, reduction.name = "pca", verbose = FALSE)
   print_message(log_prefix, "Batch Correcting PCA with Harmony")
-  object <- RunHarmony(object, group.by.vars = harmony_group_by, reduction = "pca", reduction.save = "harmony", verbose = FALSE)
+  object <- harmony::RunHarmony(object, group.by.vars = harmony_group_by, reduction = "pca", reduction.save = "harmony", verbose = FALSE)
   
   print_message(log_prefix, "Nearest Neighbors")
   object <- FindNeighbors(object, reduction = "harmony", dims = pca_dims, verbose = FALSE)

@@ -122,7 +122,7 @@ process_normalized_citeseq_data <- function(
   object <- ScaleData(object, vars.to.regress = rna_vars_to_regress, verbose = FALSE)
   object <- RunPCA(object, reduction.name = "pca", verbose = FALSE)
   print_message(log_prefix, "RNA: Batch Correcting PCA with Harmony")
-  object <- RunHarmony(object, group.by.vars = harmony_group_by, reduction = "pca", reduction.save = "harmony", verbose = FALSE)
+  object <- harmony::RunHarmony(object, group.by.vars = harmony_group_by, reduction = "pca", reduction.save = "harmony", verbose = FALSE)
 
   if (adt_batch_correction_method == "harmony") {
     print_message(log_prefix, "ADT: Selecting non-isotypes as \"HVGs\", regressing metrics and scaling, and PCA")
@@ -130,7 +130,7 @@ process_normalized_citeseq_data <- function(
     object <- ScaleData(object, vars.to.regress = adt_vars_to_regress, verbose = FALSE, assay = "ADT")
     object <- RunPCA(object, reduction.name = "adt.pca", verbose = FALSE, assay = "ADT")
     print_message(log_prefix, "ADT: Batch Correcting PCA with Harmony")
-    object <- RunHarmony(object, group.by.vars = harmony_group_by, reduction = "adt.pca", reduction.save = "adt.harmony", verbose = FALSE)
+    object <- harmony::RunHarmony(object, group.by.vars = harmony_group_by, reduction = "adt.pca", reduction.save = "adt.harmony", verbose = FALSE)
     adt_reduction <- "adt.harmony"
   } else if (adt_batch_correction_method == "rpca-integration") {
     print_message(log_prefix, "ADT: Selecting non-isotypes, then subsetting to per-library objects")
