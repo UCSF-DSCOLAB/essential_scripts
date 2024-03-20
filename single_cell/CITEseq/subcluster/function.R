@@ -127,8 +127,8 @@ process_normalized_citeseq_data <- function(
   if (adt_batch_correction_method == "harmony") {
     print_message(log_prefix, "ADT: Selecting non-isotypes as \"HVGs\", regressing metrics and scaling, and PCA")
     VariableFeatures(object, assay = "ADT") <- adt_features
-    object <- ScaleData(object, vars.to.regress = adt_vars_to_regress, verbose = FALSE, assay = "ADT")
-    object <- RunPCA(object, reduction.name = "adt.pca", verbose = FALSE, assay = "ADT")
+    object <- ScaleData(object, vars.to.regress = adt_vars_to_regress, verbose = FALSE, assay = "ADT", features = adt_features)
+    object <- RunPCA(object, reduction.name = "adt.pca", verbose = FALSE, assay = "ADT", features = adt_features)
     print_message(log_prefix, "ADT: Batch Correcting PCA with Harmony")
     object <- harmony::RunHarmony(object, group.by.vars = harmony_group_by, reduction = "adt.pca", reduction.save = "adt.harmony", verbose = FALSE)
     adt_reduction <- "adt.harmony"
@@ -145,8 +145,8 @@ process_normalized_citeseq_data <- function(
       cat("\t", libs[x], "\n", sep = "")
       x <- sobjs.list[[x]]
       VariableFeatures(object, assay = "ADT") <- adt_features
-      x <- ScaleData(x, verbose = FALSE, assay = "ADT")
-      x <- RunPCA(x, verbose = FALSE, assay = "ADT")
+      x <- ScaleData(x, verbose = FALSE, assay = "ADT", features = adt_features)
+      x <- RunPCA(x, verbose = FALSE, assay = "ADT", features = adt_features)
     })
     names(sobjs.list) <- libs
     print_message(log_prefix, "ADT: Finding integration anchors")
@@ -162,8 +162,8 @@ process_normalized_citeseq_data <- function(
     DefaultAssay(adt_int) <- "integrated.ADT"
     VariableFeatures(adt_int, assay = "integrated.ADT") <- adt_features
     print_message(log_prefix, "ADT: Scaling and PCA of Integrated ADT data")
-    adt_int <- ScaleData(adt_int, vars.to.regress = adt_vars_to_regress, verbose = FALSE)
-    adt_int <- RunPCA(adt_int, reduction.name = "int.adt.pca", reduction.key = "integratedADTpca_", verbose = FALSE)
+    adt_int <- ScaleData(adt_int, vars.to.regress = adt_vars_to_regress, verbose = FALSE, features = adt_features)
+    adt_int <- RunPCA(adt_int, reduction.name = "int.adt.pca", reduction.key = "integratedADTpca_", verbose = FALSE, features = adt_features)
     print_message(log_prefix, "ADT: Pulling integrated ADT assay and PCA to in-progress object")
     stopifnot(all(colnames(adt_int) %in% colnames(object)))
     stopifnot(all(colnames(object) %in% colnames(adt_int)))
