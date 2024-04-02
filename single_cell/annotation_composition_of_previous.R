@@ -84,13 +84,13 @@ add_previous_annotation_composition <- function(
 
             next_tops_str <- ""
             num_top <- 2
+            this_data <- this_data[this_data$label != max,]
             while (next_tops > 0) {
-                this_data <- this_data[this_data$label != max,]
                 new_max_ind <- which.max(this_data$count)
                 new <- as.character(this_data$label[new_max_ind])
                 new.percent <- round(this_data$percent[new_max_ind], decimals)
                 new.percent.of.ref <- round(this_data$count[new_max_ind]/transfer_counts[new], decimals)
-                next_tops_str <- paste(
+                next_tops_str <- paste0(
                     next_tops_str, ifelse(num_top>2, " | ", ""),
                     num_top, ": ",
                     new, "; ",
@@ -99,6 +99,7 @@ add_previous_annotation_composition <- function(
                 )
                 num_top <- num_top + 1
                 next_tops <- next_tops - 1
+                this_data <- this_data[this_data$label != new,]
             }
 
             data.frame(
