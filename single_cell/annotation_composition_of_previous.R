@@ -30,10 +30,14 @@ add_previous_annotation_composition <- function(
         }
     }
 
+    if (!requireNamespace("dittoViz", quietly = TRUE)) {
+        stop("dittoViz installation required for this function. `remotes::install_github('dtm2451/dittoViz')`")
+    }
+
     # Get annotationDF
     if (is(annotationDF, "character")) {
-        if (identical(sep, NA)) {
-            ifelse(endsWith(annotationDF, ".csv"), ",", "\t")
+        if (identical(read_sep, NA)) {
+            read_sep <- ifelse(endsWith(annotationDF, ".csv"), ",", "\t")
         }
         log("Reading in annotationDF from ", annotationDF)
         annotationDF <- read.csv(
@@ -57,20 +61,17 @@ add_previous_annotation_composition <- function(
             stop("The first column name of annotationDF does not exist in the given cell metadata. Do you need to give 'clustering'? Or is it accidentally missing from 'object'?")
         }
     } else {
-        clusts <- colLevels(clustering, meta)
+        clusts <- dittoViz::colLevels(clustering, meta)
     }
 
     # Determine Compositions
     log(
         "Calculating compositions of ", transfer_target, " per ", clustering,
         " clusters, using dittoViz::barPlot(..., data.only=TRUE)")
-    if (!requireNamespace("dittoViz", quietly = TRUE)) {
-        stop("dittoViz installation required for this function. `remotes::install_github('dtm2451/dittoViz')`")
-    }
     data <- dittoViz::barPlot(meta, transfer_target, clustering, data.only = TRUE)
 
     log("Summarizing top compositions")
-    transfer_counts <- table(meta[[transfer_target, drop=TRUE]])
+    transfer_counts <- table(meta[,transfer_target])
 
     transfer_summary <- do.call(rbind, lapply(
         clusts, function(this_clust) {
@@ -104,12 +105,12 @@ add_previous_annotation_composition <- function(
                 cluster = this_clust,
                 transfer_max = max,
                 percent_max_of_this_cluster = max.percent,
-                percent_max_of_total_max = percent.of.ref,
-                transfer_top = next_tops_str
+                percent_max_here_of_total_max = percent.of.ref,
+                transfer_next_tops = next_tops_str
             )
         }
     ))
 
     log("Merging with annotationDF, then outputting")
-    merge(annotationDF, transfer_summary, by.x = clustering, by.y = "cluster")
+    merge(annotationDF, transfer_summary, by.x = 1, by.y = "cluster")
 }
