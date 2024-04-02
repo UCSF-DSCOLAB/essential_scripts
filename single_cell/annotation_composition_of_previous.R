@@ -106,6 +106,7 @@ add_previous_annotation_composition <- function(
                 percent_max_of_this_cluster = max.percent,
                 percent_max_of_total_max = percent.of.ref,
                 transfer_top = next_tops_str
+            )
         }
     ))
 
