@@ -1,0 +1,100 @@
+Visualize the density of each cluster over the umap space, wraps
+dittoDimHex
+
+Description:
+
+     Visualize the density of each cluster over the umap space, wraps
+     dittoDimHex
+
+Usage:
+
+     density_plotter(
+       object,
+       clustering,
+       scale_legend = 3,
+       main = clustering,
+       data.out = FALSE,
+       dont_warn = FALSE,
+       split.by = NULL,
+       color.var = NULL,
+       ...
+     )
+     
+Arguments:
+
+  object: A Seurat or SingleCellExperiment object
+
+clustering: String, the name of the metadata to facet by, especially
+          one holding cells' cluster identities. Extra detail: This
+          value will be passed to ‘dittoDimHex’ in its ‘split.by’
+          argument.
+
+scale_legend: Number, a scale factor for the size of the density
+          legend. By default, this legend is expanded to 3x the normal
+          legend size in order to be able to reveal the multiple color
+          changes in its lower end.
+
+main, data.out, ...: Parameters passed on to ‘dittoDimHex’
+
+dont_warn: Logical. Set to TRUE to block output of ‘color.var’ and
+          ‘split.by’ input-related warnings.
+
+split.by: NULL or a Single String giving the name of a additional
+          metadata to facet by. Not recommended normally, but not
+          blocked as there may be valid use-cases.
+
+color.var: Ignored. Usage of this parameter of ‘dittoDimHex’ changes
+          density to be plotted via opacity instead of color, which
+          would defeat the entire purpose of this wrapper function.
+
+Value:
+
+     A ggplot object where colored hexagonal bins are used to summarize
+     cell density of ‘clustering’-identities across the UMAP (or
+     dimensionality reduction) space.
+
+     Alternatively, if ‘data.out=TRUE’, a list containing two slots is
+     output: the plot (named 'plot'), and a data.table containing the
+     underlying data for target cells (named 'data').
+
+Author(s):
+
+     Daniel Bunis
+
+See Also:
+
+     ‘dittoDimHex’
+
+Examples:
+
+     # We'll use the Seurat example dataset for this example
+     sobj <- SeuratObject::pbmc_small
+     
+     # We'll also make use of the fact that dittoSeq allows use of the string
+     #  "ident" to refererence the 'Idents(seurat_object)' because Seurat
+     #  could change the metadata name sof 'pbmc_small' at any time.
+     
+     density_plotter(
+         sobj,
+         "ident" # or the name of your desired clustering metadata
+     )
+     
+     # You make the density legend bigger or smaller by adjusting the
+     #  'scale_legend' input.
+     density_plotter(sobj, "ident",
+         scale_legend = 1
+     )
+     
+     # You can also make use of additional dittoDimHex inputs.
+     density_plotter(sobj, "ident",
+         bins = 5,
+         reduction.use = "pca",
+         main = "Cluster Densities on PCA"
+     )
+     
+     # You can also turn off the warning from supplying an extra 'split.by'
+     #  argument by adding 'dont_warn = TRUE'.
+     density_plotter(sobj, "ident",
+         split.by = "groups",
+         dont_warn = TRUE)
+     
