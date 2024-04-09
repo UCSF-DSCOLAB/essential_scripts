@@ -36,3 +36,4 @@ you would like to add:
 | single_cell/annotation_import.R | When `source()`'d, defines an R function for pulling annotations into Seurat or SCE objects from a csv. An [example 'annots_file'](single_cell/annotation_import_example.csv) and [txt version of the function documentation](single_cell/annotation_import.txt) is also included. | Dan | No, but could be! | 
 | single_cell/CITEseq/subcluster/function.R | When `source()`'d, defines an R function for subclustering Seurat CITEseq data. A script.R is also included to provide example usage. | Dan | No |
 | count_cores | a command line executable that allows a user to 1) self-monitor their active cores on `krummellab` nodes (default) or 2) use optional flags to query all DSCoLab active jobs to test for core monopoly | Rebecca | Yes |
+| seff | a command line util that will collect time, core, and memory usages stats for a given job; dependency for `core_count` | Rebecca | Yes |
