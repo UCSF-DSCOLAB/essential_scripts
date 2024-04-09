@@ -54,11 +54,15 @@ core_collector() {
     local target_user="$2"
 
     partition_sums[$partition]=0  # Reset partition sum for the current partition
-    
+        
 
-    for monitoring_job_id in $(squeue | grep " R " | grep "${partition:0:8}" | grep "${target_user:0:8}" | awk '{print $1}'); do
+
+    for monitoring_job_id in $(squeue | grep " R " | grep " R " | grep "${partition:0:8}" | grep "${target_user:0:8}" | awk '{print $1}'); do
+        #locate sef
+        c4_utils_dir="$(dirname "$0")"
+        
         # Use seff to get efficiency and resource usage information for each job
-        seff_output=$(/krummellab/data1/rebeccagj/scripts/bash/seff "$monitoring_job_id")
+        seff_output=$("$c4_utils_dir/seff" "$monitoring_job_id")
         
         # Extract nodes and cores per node information
         nodes=0
