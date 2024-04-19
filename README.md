@@ -25,22 +25,22 @@ This repo is meant to be used for sharing, in a version controlled way, either h
   - Only relative paths should be used, specifically for referencing other files within this repo 
 - **Scripts should never contain passwords or any encryption keys.**
 - **All scripts must be tested by a user other than their creator before merging into 'main'.**
-- **All scripts should be documentated**:
-  - The more documentation the better!
+- **All scripts should be documented**:
+  - The more documentation, the better!
   - For scripts focused around achieving some function rather than defining a function:
     - Code comment at top which describes the goals
     - Occasional interspersed comments as needed
-    - If possible, consider collecting all variable requiring editing from run to run into a chunk at the top of the script
+    - If possible, consider collecting all variables requiring edit from run to run into a single chunk at the top of the script
   - For scripts defining functions:
     - Minimally:
-      - Overall goal described
+      - Overall goal of the function
       - Each inputs should be described (both type + function)
     - Ideally also:
       - Typing / structure of outputs
       - General description of how the function uses inputs to arrive at outputs
-      - Examples
+      - Code examples
     - Per language requirements:
-      - Bash: calling the function without required parameters, or with -h or --help, should yield display of the documentation requirements
+      - Bash: calling the function without required parameters, or with -h or --help, should yield documentation
         - Example reference: [count_cores](c4_utils/count_cores)
       - R: documentation in roxygen syntax is heavily recommended, as well as publishing via document::document() to create a .txt file rendering due to lack of language support for retaining documentation alongside od source()-acquired functions.
         - Example reference: [essential_scripts/single_cell/density_plotter.R](essential_scripts/single_cell/density_plotter.R)
