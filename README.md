@@ -7,7 +7,7 @@ It is expected that there will be continued development to many of the scripts c
 When loading functions from an R script, in order to ensure internal cross-repo-file references can work, please use `source("path/to/function/file", chdir = TRUE)`.  (For python, no special equivalent is needed because standard `import` methodology follows relative pathing from the target script's location by defaut!) 
 
 # Contributing
-This repo is meant to be used for sharing, in a version controlled way, either heavily-tested and validated code, or code that is simply useful for a collaborator.
+This repo is meant to be used for sharing, in a version controlled way, both heavily-tested and validated code, as well as code that is simply useful for a single collaborator.
 
 - If functionality of your files does not yet exist in the repo:
   - Use the standard branch & commit process to add them.
@@ -19,13 +19,16 @@ This repo is meant to be used for sharing, in a version controlled way, either h
   - Be sure to update the Files Index below if needed.
   - Final form should coalesce around a single code path, and must still meet all 'main'-branch requirements if the code is on the 'main'-branch.
 
+# Expectations for all scripts
+
+- **Scripts should never contain passwords or any encryption keys.**
+- Scripts should never have hard-coded paths and instead allow users to record their own or pass paths in.
+  - Only relative paths should be used, specifically for referencing other files within this repo 
+
 # Expectations for 'main' branch scripts
 
-- Programs should never have hard-coded paths and instead allow users to pass paths in.
-  - Only relative paths should be used, specifically for referencing other files within this repo 
-- **Scripts should never contain passwords or any encryption keys.**
-- **All scripts must be tested by a user other than their creator before merging into 'main'.**
-- **All scripts should be documented**:
+- **All 'main'-branch scripts must be tested by a user other than their creator before merging into 'main'.**
+- **All 'main'-branch scripts should be documented**:
   - The more documentation, the better!
   - For scripts focused around achieving some function rather than defining a function:
     - Code comment at top which describes the goals
@@ -42,9 +45,9 @@ This repo is meant to be used for sharing, in a version controlled way, either h
     - Per language requirements:
       - Bash: calling the function without required parameters, or with -h or --help, should yield documentation
         - Example reference: [count_cores](c4_utils/count_cores)
-      - R: documentation in roxygen syntax is heavily recommended, as well as publishing via document::document() to create a .txt file rendering due to lack of language support for retaining documentation alongside od source()-acquired functions.
+      - R: documentation in `roxygen` syntax is heavily recommended, as well as publishing via `document::document()` to create a .txt file rendering (due to lack of language support for retaining documentation alongside of source()-acquired functions).
         - Example reference: [essential_scripts/single_cell/density_plotter.R](essential_scripts/single_cell/density_plotter.R)
-      - Python: documentation in sphinx syntax is heavily recommended.
+      - Python: documentation in `sphinx` syntax is heavily recommended.
           <details>
 
           <summary>
