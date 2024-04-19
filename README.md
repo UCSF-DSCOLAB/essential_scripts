@@ -24,7 +24,7 @@ This repo is meant to be used for sharing, in a version controlled way, either h
 - Programs should never have hard-coded paths and instead allow users to pass paths in.
   - Only relative paths should be used, specifically for referencing other files within this repo 
 - **Scripts should never contain passwords or any encryption keys.**
-- **All scripts must be tested by a user other than their creator before merging into 'main'.
+- **All scripts must be tested by a user other than their creator before merging into 'main'.**
 - **All scripts should be documentated**:
   - The more documentation the better!
   - For scripts focused around achieving some function rather than defining a function:
