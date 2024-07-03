@@ -36,7 +36,7 @@ npcs=18
 
 sobjs.list <- lapply(X = list_samples, FUN=function(SAMPLE_NAME){
   print(SAMPLE_NAME)
-  sobj = readRDS(sprintf("%s/%s/automated_processing/%s_filtered.rds", IN_DIR,
+  sobj = readRDS(sprintf("%s/%s/automated_processing/%s_processed.rds", IN_DIR,
                              SAMPLE_NAME, SAMPLE_NAME))
   sobj = subset(sobj, DROPLET.TYPE.FINAL=="SNG")
   DefaultAssay(sobj) = "ADT"
