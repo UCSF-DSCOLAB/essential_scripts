@@ -1,11 +1,11 @@
 ##### This script provides example usage of the 'process_normalized_citeseq_data' function from the adjacent script.
 ### This script is intended to be copied elsewhere and edited for direct use
 ### It generates lots of timestamped log messages to always know what's going on.
-### In this example, I'm subsetting on broad annotations that aren't yet in the object, so will be loading those in, and then subsetting to all the Tcell calls
+### In this example, I'm subsetting on broad annotations that aren't yet in the object, so will be loading those in, subsetting to all the Tcell calls, then running the processing function.
 
 # Replace this path with the path to your own data
 full_object_rds_file <- "/path/to/full_data.Rds"
-source("/path/to/single_cell/CITEseq/subcluster/function.R")
+source("/path/to/single_cell/CITEseq/process/function.R")
 # I recommend doing a DRYRUN for double-checking proper subseting and reference setup.
 # Set this to FALSE to run processing!
 DRYRUN <- TRUE
