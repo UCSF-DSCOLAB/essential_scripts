@@ -1,0 +1,141 @@
+Run DGE between 2 groups while looping through cell types
+
+Description:
+
+     Run DGE between 2 groups while looping through cell types
+
+Usage:
+
+     dgeMAST(
+       object,
+       cells.group.by,
+       cells.group.targets = NULL,
+       dge.group.by,
+       dge.group.1,
+       dge.group.2,
+       cells.use = NULL,
+       log.prefix = "",
+       mast.freq.expressed.min = 0.2,
+       add.random.effect = "orig.ident",
+       add.fixed.effect = NULL
+     )
+     
+Arguments:
+
+  object: A Seurat or SingleCellExperiment (SCE) object
+
+cells.group.by: String naming a metadata column of ‘object’ which holds
+          clusters, annotations, or other cell groupings to explore
+          within
+
+cells.group.targets: NULL or a string vector naming particular levels
+          of the ‘cell.group.by’-data to run DGE within.  When left as
+          ‘NULL’, all cell groupings will be targeted
+
+dge.group.by: String naming a metadata column of ‘object’ which holds
+          the sample or cell groupings that you wish to compare between
+
+dge.group.1, dge.group.2: Strings naming the groups of
+          ‘dge.group.by’-data to compare between. Directionality:
+          Positive log2FC (foldChange) will mean upregulation in
+          ‘dge.group.1’ with respect to ‘dge.group.2’.
+
+cells.use: NULL or a Logical vector (of length equal to the number of
+          cells in ‘object’) indicating cells to keep (TRUE) or remove
+          (FALSE) before calculating DGE. Can be useful for ignoring
+          specific samples.
+
+log.prefix: String to append at the beginning of log messages. Useful
+          when wrapping this function inside an external loop.
+
+mast.freq.expressed.min: A fraction between 0 and 1, default = 0.2,
+          which sets the minimal percent of cells that must express a
+          gene for it to be considered. MAST performs less well for
+          genes with low percent expression. This cutoff is run per
+          each considered ‘cell.group.targets’ cell grouping, and only
+          expression among cells of the targeted ‘dge.group.1’ and
+          ‘dge.group.2’ groups are considered.
+
+add.random.effect, add.fixed.effect: # NULL or String vectors naming
+          metadata columns of ‘object’ to treat as a random or fixed
+          effects, respectively, in the mixed effect model used for DGE
+          calculation. Additional details:
+
+            • NOTE: ‘add.random.effect’ defaults to "orig.ident" with
+              the assumption that this column generally 1) exists and
+              2) holds batch information that is normally desired to be
+              modeled as a random effect. Set to NULL, or something
+              different, to turn this off.
+
+            • ‘add.random.effect’ must target discrete metadata and
+              will be turned into a factor before use.
+
+            • 'ngeneson' (the number of expressed genes per cell, which
+              will be calculated internally) and ‘dge.group.by’ are
+              automatically added as fixed effects and do not need to
+              be added here.
+
+Details:
+
+     This function loops across multiple clusters running DGE between 2
+     groups, gathering eveything into a single data.frame. Think like
+     FindAllMarkers, but for a biological question per each cluster.
+
+     Raw counts (integers) are expected to exist and to be in the
+     'counts' slot of the 'RNA' assay if ‘object’ is a Seurat object,
+     or in an assay named 'counts' if ‘object’ is a
+     SingleCellExperiment object.
+
+     In preparation:
+
+     Seurat data is converted to a SingleCellObject (SCE). The SCE is
+     trimmed to only the cells indicated by ‘cells.use’, and only those
+     where ‘dge.group.by’ is either ‘dge.group.1’ or ‘dge.group.2’. And
+     the set of cell targets given by ‘cells.group.targets’ is trimmed
+     of any targets that don't have any cells of codedge.group.1 or
+     ‘dge.group.2’
+
+     Then, the function loops through ‘cells.group.targets’, performing
+     these steps per each subset of cells:
+
+     Log and read-depth normalization of the counts data, trimming
+     genes expressed in fewer than ‘mast.freq.expressed.min’ proportion
+     of cells, calculation of the number of genes expressed per cell
+     ('ngeneson'), the DGE calculation with ‘formula’ based on the
+     contents of ‘add.random.effect’ and ‘add.fixed.effect’. By
+     default, the formula amounts to ‘~ <dge.group.by> + ngeneson + (1
+     | orig.ident)’. FDR-correction is applied to p-values at this
+     stage - per each cell type.
+
+     It then renames columns, converts the column holding fold change
+     information to be base2, and adds an "up_in" column to help
+     explain which codedge.group.1 or ‘dge.group.2’ was found to have
+     higher expression for each gene.
+
+Value:
+
+     a data.table
+
+DGE methodology details:
+
+     DGE is run by first modeling the data using MAST's zlm function,
+     followed by determining p-values using its likelihood ratio test
+     methodology on the contrast of interest.
+
+     Specifically, ‘zlm’ is run with settings:
+
+        • Always: ‘ebayes = FALSE, strictConvergence = FALSE’
+
+        • Additionally:
+
+            • when there is a random effect given (default) to
+              ‘add.random.effect’: ‘method='glmer', fitArgsD =
+              list(nAGQ = 0)’
+
+            • when there is no random effect given to
+              ‘add.random.effect’: ‘method='glm'’
+
+Author(s):
+
+     Daniel Bunis and Ravi Patel
+
