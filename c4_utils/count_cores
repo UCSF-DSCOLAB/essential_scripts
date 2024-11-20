@@ -39,7 +39,7 @@ while [[ "$#" -gt 0 ]]; do
 done
 
 if [ "$all_users" = true ]; then
-    target_users_list=$(squeue | grep krum | awk '{print $4}' | sort | uniq)
+    target_users_list=$(squeue | grep -E "dsco|krum" | awk '{print $4}' | sort | uniq)
 fi
 
 if [ "$verbose" = true ]; then
