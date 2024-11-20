@@ -3,7 +3,8 @@
 # Default values
 verbose=false
 target_users_list=$USER
-partitions=("dscolab|krummellab")
+partitions=("dscolab" "krummellab")
+
 all_users=false
 
 # Display help message if --help option is provided
