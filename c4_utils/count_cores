@@ -3,7 +3,7 @@
 # Default values
 verbose=false
 target_users_list=$USER
-partitions=("dscolab|krummellab")
+partitions=("dscolab" "krummellab")
 all_users=false
 
 # Display help message if --help option is provided
@@ -19,7 +19,7 @@ if [ "$1" == "--help" ] || [ "$1" == "-h" ]; then
     echo "  -v, --verbose         Enable verbose mode"
     echo "  -u, --user username   Specify a username (default: \$USER)"
     echo "  -a, --all             Run for all users running jobs on krummellab"
-    echo "  -p, --partition \"partition1|partition2|...\" Specify one or more partitions in quotes, separated by | (default: dscolab|krummellab)"
+    echo "  -p, --partition \"partition1|partition2|...\" Specify one or more partitions in quotes, separated by | (default: dscolab and krummellab)"
     exit 0
 fi
 
