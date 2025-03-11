@@ -6,7 +6,7 @@ def ts_log(msg):
     This function prints a timestamped (ts) log message where the given 'msg'
     is printed after a timestamp in the form of:
     
-    [2025-03-11 14:05:47] {msg}
+    [2025-03-11T14:05:47] {msg}
 
     Arguments:
         'msg' - String, the desired text of the log message.
@@ -18,5 +18,5 @@ def ts_log(msg):
     flushing line is not needed, and the sourcing the 'ts_log.py' version
     is recommended.
     """
-    print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] {msg}')
+    print(f'[{datetime.now().strftime("%Y-%m-%dT%H:%M:%S")}] {msg}')
     sys.stdout.flush()
