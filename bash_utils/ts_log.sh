@@ -4,5 +4,5 @@
 #
 # Usage: ts_log hello
 ts_log () {
-    echo "[$(date +"%Y-%m-%dT%H:%M:%S")] "$1
+    echo "[$(date +"%Y-%m-%dT%H:%M:%S")] ""$*"
 }
