@@ -14,7 +14,8 @@ Arguments:
 'flush'             (Optional) boolean, controls whether to add a call to
                     'sys.stdout.flush()' after printing.  See note below.
 *args, **kwargs     Strings, any item given to the function (not named as
-                    'sep') will be concatenated together as the log message
+                    'sep' or 'flush') will be concatenated together as the
+                    log message
 
 Examples:
 ts_log("hello world")
