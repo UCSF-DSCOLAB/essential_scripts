@@ -14,6 +14,8 @@ Various functions are defined inside scripts in this repo. The recommended metho
 
 **bash**: `source path/to/file`
 
+Note that not all functionality of the repo requires initially sourcing scripts in this way. E.g. `count_cores` is a script that is meant to be called directly via, e.g., `path/to/count_cores -a`.  Please refer to documentation of individual items.
+
 # Contributing
 This repo is currently under construction and in a rapid population phase.
 
