@@ -18,7 +18,7 @@ Arguments:
 
 Examples:
 ts_log("hello world")
-ts_log("hello", "world", sep = True, flush = True)
+ts_log("hello", "world", sep = "\t", flush = True)
 
 Additional details on 'flush' behavior:
 Depending on how a script is run, python my hold its stdout in a buffer until
