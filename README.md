@@ -55,6 +55,8 @@ This repo is meant to be used for sharing, in a version controlled way, both hea
     - Per language requirements:
       - Bash: calling the function without required parameters, or with -h or --help, should yield documentation
         - Example reference: [count_cores](c4_utils/count_cores)
+      - Perl: calling the function without required parameters, or with -h or --help, should yield documentation
+        - Example reference: [metis_client_cmd_builder.pl](dl_utils/metis_client_cmd_builder.pl)
       - R: documentation in `roxygen` syntax is heavily recommended, as well as publishing via `document::document()` to create a .txt file rendering (due to lack of language support for retaining documentation alongside of source()-acquired functions).
         - Example reference: [essential_scripts/single_cell/density_plotter.R](essential_scripts/single_cell/density_plotter.R)
       - Python: documentation in `sphinx` syntax is heavily recommended.
