@@ -103,7 +103,7 @@ dsco_pseudobulk <- function(
     if (method == 'Seurat') {
         msg_if("Initiating pseudobulking with Seurat's AggregateExpression...")
         group.metas <- c(sample.by, cell.by)
-        psobject <- AggregateExpression(
+        psobject <- Seurat::AggregateExpression(
             object = object, return.seurat = TRUE, group.by = group.metas,
             features = features,
             assays = assay)
