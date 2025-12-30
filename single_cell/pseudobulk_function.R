@@ -69,13 +69,13 @@ dsco_pseudobulk <- function(
     orig_metas <- colnames(object@meta.data)
 
     # Ensure ts_log exists, or source it.
-    if (!exists('ts_log')) {
-        stop("'ts_log' function required when 'verbose = TRUE'. Set 'verbose = FALSE' or run 'source('<path_to_this_essential_scripts_repo>/R_utils/ts_log.R', chdir = TRUE, local = TRUE)' and then try again.")
-    }
-    msg_if <- function(..., do = verbose) {
-        if (do) {
-            ts_log(...)
+    if (verbose) {
+        if (!exists('ts_log')) {
+            stop("'ts_log' function required when 'verbose = TRUE'. Set 'verbose = FALSE' or run 'source('<path_to_this_essential_scripts_repo>/R_utils/ts_log.R', chdir = TRUE, local = TRUE)' and then try again.")
         }
+        msg_if <- ts_log
+    } else {
+        msg_if <- function(...) {}
     }
 
     # Ensure all of cell.by and sample.by exist as metadata
