@@ -9,16 +9,16 @@
 #' @param cell.targets Optionally, a string vector naming particular \code{cell.by} values to target. Only these cell identities will be retained and pseudobulked.
 #' @param features Optionally, a string vector naming a subset of genes to target. Only counts of these genes will be retained in pseudobulking.
 #' @param assay String naming the assay of \code{object} to target. Default is "RNA".
-#' @param meta.targets Optionally, a string vector naming particular metadata columns of \code{object} to target for retention.
+#' @param meta.targets Optionally, a string vector naming particular metadata columns of \code{object} to target for retention. By default, as much a possible will be retained.
 #' @param meta.num.summary.method Function like \code{\link[base]{mean}} or \code{\link[base]{median}} (with an \code{na.rm = TRUE} option) describing how to summarize numeric metadata from all cells of each pseudobulk
 #' @param method "Seurat", "scuttle", or "dreamlet". Determines which pseudobulking tool to rely on. \itemize{
 #' \item "Seurat" = \code{\link[Seurat]{AggregateExpression}}
 #' \item Others planned but not yet implemented
 #' }
-#' @param output_style "Seurat" or "raw". Determines how data should be returned. Either as a Seurat object, or as a raw list of the 'counts' (matrix) and 'meta' (data.frame)
-#' @param output_metadata_cell_count String denoting the metadata name to use for adding the number of original cells going into each pseudobulk
-#' @param verbose Logical which controls whether log messages should be output
-#' @return A Seurat object or, if \code{output_style = 'raw'} a named list with elements 'counts' and 'meta'.
+#' @param output.style "Seurat" or "raw". Determines how data should be returned. Either as a Seurat object, or as a raw list of the 'counts' (matrix) and 'metadata' (data.frame)
+#' @param output.metadata.cell.count String denoting the metadata column name added to hold the number of original cells going into each pseudobulk
+#' @param verbose Logical which controls whether timestamped log messages should be shown
+#' @return A Seurat object or, if \code{output.style = 'raw'} a named list with elements 'counts' and 'metadata'.
 #' @details
 #' The primary role of this function is standardizing the pseudobulking process.
 #'
@@ -31,14 +31,14 @@
 #' \code{return.seurat = TRUE, group.by = c(sample.by, cell.by), features = features, assays = assay}.
 #'
 #' The number of cells that each pseudbulk represents are added to a metadata named 'cells_in_pseudobulk' by default.
-#' Use \code{output_metadata_cell_count} to use a different column name.
+#' Use \code{output.metadata.cell.count} to use a different column name.
 #' \emph{Pseudobulks representing fewer than \code{min.cells} cells are removed.}
 #'
 #' \code{meta.targets}, or all metadata or \code{object} are then extracted for each pseudobulk.
 #' For discrete metadata, the column will be ignored if data are not consistent within ALL pseudobulks.
 #' For numeric metadata, values from each cell in the pseudobulks are summarized by the \code{meta.num.summary.method} function (\code{\link[base]{median}} by default).
 #'
-#' Finally, the output structure is determined by the \code{output_style} input.
+#' Finally, the output structure is determined by the \code{output.style} input.
 #'
 #' Prior to pseudobulking, particular cell identities or genes can be targeted using the \code{cell.targets} and \code{features} inputs, respectively.
 #'
@@ -59,12 +59,12 @@ dsco_pseudobulk <- function(
     assay = "RNA",
     method = c('Seurat', 'scuttle', 'dreamlet'),
     meta.num.summary.method = median,
-    output_style = c('Seurat', 'raw'),
-    output_metadata_cell_count = 'cells_in_pseudobulk',
+    output.style = c('Seurat', 'raw'),
+    output.metadata.cell.count = 'cells_in_pseudobulk',
     verbose = TRUE
 ) {
     method <- match.arg(method)
-    output_style <- match.arg(output_style)
+    output.style <- match.arg(output.style)
 
     orig_metas <- colnames(object@meta.data)
 
@@ -109,8 +109,8 @@ dsco_pseudobulk <- function(
             assays = assay)
 
         ### Add cell counts and Trim too small pseudobulks
-        msg_if("Adding cell counts as metadata '", output_metadata_cell_count, "'.")
-        psobject@meta.data[,output_metadata_cell_count] <- vapply(
+        msg_if("Adding cell counts as metadata '", output.metadata.cell.count, "'.")
+        psobject@meta.data[,output.metadata.cell.count] <- vapply(
             seq_len(ncol(psobject)),
             function(i) {
                 # Using unlist for ignorance of rownames (cell vs pseudobulk won't match!)
@@ -123,7 +123,7 @@ dsco_pseudobulk <- function(
             },
             numeric(1)
         )
-        psobject <- psobject[,psobject@meta.data[,output_metadata_cell_count] >= min.cells]
+        psobject <- psobject[,psobject@meta.data[,output.metadata.cell.count] >= min.cells]
 
         ### Ensure meta.targets, or as many metadata as possible, are retained.
         meta_ignored <- c()
@@ -169,7 +169,7 @@ dsco_pseudobulk <- function(
 
     # Output in requested style
     msg_if("Pseudobulk function COMPLETE.")
-    if (output_style == 'Seurat') {
+    if (output.style == 'Seurat') {
         psobject
     } else {
         exp <- if (packageVersion("Seurat")>='5.0') {
@@ -177,6 +177,6 @@ dsco_pseudobulk <- function(
         } else {
             Seurat::GetAssayData(psobject, slot = 'counts')
         }
-        list(counts = exp, meta = psobject@meta.data)
+        list(counts = exp, metadata = psobject@meta.data)
     }
 }
