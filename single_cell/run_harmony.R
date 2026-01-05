@@ -26,23 +26,23 @@ args = commandArgs(trailingOnly=T)
 IN_DIR= args[1]
 OUT_DIR=args[2]
 SAMPLE_FILE=args[3]
-list_samples = read_tsv(SAMPLE_FILE, col_names=F)[,1]
+list_samples = read_tsv(SAMPLE_FILE, col_names=F)$X1
 
 
 if (!file.exists(sprintf('%s/merged_temp.RData', OUT_DIR))){
   dir.create(OUT_DIR)
   
   sobjs.list <- lapply(list_samples, FUN = function(SAMPLE_NAME) {
-
+    
     sobj = readRDS(sprintf("%s/%s/automated_processing/%s_processed.rds", IN_DIR,
-                                   SAMPLE_NAME, SAMPLE_NAME))
+                           SAMPLE_NAME, SAMPLE_NAME))
     
     DefaultAssay(sobj) = "RNA" 
     sobj = NormalizeData(sobj)
     
     # remove doublets
     sobj = subset(sobj, DROPLET.TYPE.FINAL=="SNG")  
-
+    
     sobj@meta.data$LIBRARY = sobj@meta.data$orig.ident
     
     return(sobj)
@@ -56,7 +56,7 @@ if (!file.exists(sprintf('%s/merged_temp.RData', OUT_DIR))){
   
   merged_data <- FindVariableFeatures(merged_data, selection.method = "vst", nfeatures = 3000)
   merged_data <- ScaleData(merged_data, vars.to.regress=c('percent.mt', 'percent.ribo', 
-  	      	 					'nCount_RNA', 'nFeature_RNA',
+                                                          'nCount_RNA', 'nFeature_RNA',
                                                           'S.Score', 'G2M.Score'), verbose = FALSE)
   merged_data <- RunPCA(merged_data, npcs = 30, verbose = FALSE)
   merged_data <- RunUMAP(merged_data, dims = 1:30)
@@ -127,7 +127,7 @@ save(merged_data, file=sprintf('%s/merged_processed.RData', OUT_DIR))
 
 png(filename=sprintf('%s/merged_harmony_library_umap.png', OUT_DIR), 
     width = 5, height = 5, units = "in", res = 300)
-print(DimPlot(merged_data, group.by='LIBRARY') + NoLegend())
+print(DimPlot(merged_data, group.by='LIBRARY', raster=F) + NoLegend())
 dev.off()
 
 png(filename=sprintf('%s/merged_harmony_split_library_umap.png', OUT_DIR), 
@@ -185,4 +185,3 @@ write.table(metadata,
             row.names=T,
             col.names=T,
             quote=F)
-

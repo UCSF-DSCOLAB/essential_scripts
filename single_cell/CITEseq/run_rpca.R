@@ -26,9 +26,9 @@ args = commandArgs(trailingOnly=T)
 
 IN_DIR = args[1]
 OUT_DIR=args[2]
+dir.create(OUT_DIR)
 SAMPLE_FILE=args[3]
-list_samples = read_tsv(SAMPLE_FILE, col_names=F)[,1]
-
+list_samples = read_tsv(SAMPLE_FILE, col_names=F)$X1
 
 remove.isotype.ctls = TRUE
 npcs=18

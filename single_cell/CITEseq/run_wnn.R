@@ -12,12 +12,13 @@ library(Seurat)
 library(tidyverse)
 library(cowplot)
 library(dittoSeq)
+options(future.globals.maxSize= (2400*1024^2))
 
 args = commandArgs(trailingOnly=T)
 IN_DIR_HARMONY= args[1]
 IN_DIR_RPCA=args[2]
 OUT_DIR_WNN = args[3]
-
+dir.create(OUT_DIR_WNN)
 # you may want to adjust the number of PCs
 npcs.rna = 30
 npcs.adt = 18
@@ -59,7 +60,7 @@ sobj = FindMultiModalNeighbors(
 sobj = RunUMAP(sobj, nn.name = "weighted.nn", 
                reduction.name = "wnn.umap", reduction.key = "wnnUMAP_")
 
-for (res in c(0.8, 1.0, 1.2, 1.4, 1.6)){
+for (res in c(0.8)){#, 1.0, 1.2, 1.4, 1.6)){
   
   sobj = FindClusters(sobj, graph.name = "wsnn", 
                       algorithm = 4 , method="igraph", 
@@ -71,7 +72,7 @@ for (res in c(0.8, 1.0, 1.2, 1.4, 1.6)){
       width = 5, height = 5, units = "in", 
       res = 300)
   print(DimPlot(sobj, group.by=paste0('wsnn_res.', res), label=T, 
-                reduction="wnn.umap") + NoLegend())
+                reduction="wnn.umap", raster=F) + NoLegend())
   dev.off()
 }
 
