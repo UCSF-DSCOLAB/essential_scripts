@@ -2,6 +2,7 @@ from ..python_utils.ts_log import ts_log
 from scanpy.get import aggregate
 import anndata as ad
 from pandas.api.types import is_numeric_dtype
+from warnings import warn
 
 def dsco_pseudobulk(
     object, sample_by, cell_by,
@@ -116,7 +117,7 @@ Example call:
         by = group_metas,
         func = 'sum',
         layer = layer)
-    msg_if("Moving counts to .X")
+    msg_if("completed, moving pseudobulk sum counts matrix to .X")
     psobject.X = psobject.layers['sum'].copy()
     del psobject.layers['sum']
 
@@ -126,10 +127,17 @@ Example call:
     pseudo_vals = counts.index.copy()
     counts.index = ['_'.join(map(str, x)) for x in counts.index]
     psobject.obs[output_metadata_cell_count] = counts
+    psobject.obs[output_metadata_cell_count] = psobject.obs[output_metadata_cell_count].fillna(0).astype('int')
+    zero_cells = sum(psobject.obs[output_metadata_cell_count] == 0)
+    if zero_cells > 0:
+        msg_if(f"\tTrimming fake pseudobulks matching zero original cells.")
+        psobject = psobject[psobject.obs[output_metadata_cell_count] > 0].copy()
     if min_cells > 0:
         too_small = sum(psobject.obs[output_metadata_cell_count] <= min_cells)
+        if too_small == psobject.obs.shape[0]:
+            warn(f"Skipping triming pseudobulks smaller than 'min_cells' as NONE were built from more than {min_cells} cells.")
         if too_small > 0:
-            msg_if(f"Trimming {too_small} pseudobulks built from fewer then {min_cells} cells.")
+            msg_if(f"\tTrimming {too_small} pseudobulks built from fewer than {min_cells} cells.")
             psobject = psobject[psobject.obs[output_metadata_cell_count] >= min_cells].copy()
 
     ### Ensure meta_targets, or as many metadata as possible, are retained.
@@ -139,7 +147,7 @@ Example call:
         meta_targets = orig_metas
     meta_targets = [i for i in meta_targets if not i in meta_kept]
     if len(meta_targets) > 0:
-        msg_if(f"Grabbing additional metadata '{', '.join(meta_targets)}'.")
+        msg_if(f"Pulling in additional metadata targets: '{', '.join(meta_targets)}'.")
         numeric = [i for i in meta_targets if is_numeric_dtype(object.obs[i])]
         discrete = [i for i in meta_targets if not is_numeric_dtype(object.obs[i])]
         if len(discrete)>0:
@@ -148,17 +156,21 @@ Example call:
                     meta_ignored.append(col)
                     meta_targets.remove(col)
         if len(meta_ignored)>0:
-            msg_if(f"\tignoring discrete metadata column(s) '{', '.join(meta_ignored)}' because of inconsistency within some pseudobulks")
-        dtypes = object.obs.dtypes.astype(str).to_dict()
-        for col in meta_targets:
-            method = 'first' if not col in numeric else meta_num_summary_method
-            new_dat = object.obs.groupby(group_metas, observed = True).agg(x=(col, method)).loc[pseudo_vals,:]
-            new_dat.index = counts.index
-            psobject.obs[col] = new_dat
-            try:
-                psobject.obs[col] = psobject.obs[col].astype(dtypes[col])
-            except (KeyError, ValueError):
-                pass
+            msg_if(f"\tignoring discrete metadata column(s) with inconsistency within some pseudobulks: '{', '.join(meta_ignored)}'.")
+        if len(meta_targets) > 0:
+            dtypes = object.obs.dtypes.astype(str).to_dict()
+            if len(meta_targets) > 0:
+                for col in meta_targets:
+                    method = 'first' if not col in numeric else meta_num_summary_method
+                    new_dat = object.obs.groupby(group_metas, observed = True).agg(x=(col, method)).loc[pseudo_vals,:]
+                    new_dat.index = counts.index
+                    psobject.obs[col] = new_dat
+                    try:
+                        psobject.obs[col] = psobject.obs[col].astype(dtypes[col])
+                    except (KeyError, ValueError):
+                        pass
+        else:
+            msg_if('\tZero non-ignored additional metadata targets.')
 
     # Output in requested style
     msg_if("Pseudobulk function COMPLETE.")
