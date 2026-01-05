@@ -123,9 +123,9 @@ dsco_pseudobulk <- function(
             },
             numeric(1)
         )
-        too_small <- psobject@meta.data[,output.metadata.cell.count] >= min.cells
+        too_small <- psobject@meta.data[,output.metadata.cell.count] < min.cells
         if (too_small == ncol(psobject)) {
-            warning(paste0("Skipping triming pseudobulks smaller than 'min_cells' as NONE were built from more than ", min_cells, " cells.")
+            warning(paste0("Skipping triming pseudobulks smaller than 'min_cells' as NONE were built from more than ", min_cells, " cells."))
         } else if (too_small > 0) {
             msg_if("\tTrimming ", too_small, " pseudobulks built from fewer than ", min_cells, " cells.")
             psobject <- psobject[,psobject@meta.data[,output.metadata.cell.count] >= min.cells]

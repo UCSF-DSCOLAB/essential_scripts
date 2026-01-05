@@ -133,10 +133,10 @@ Example call:
         msg_if(f"\tTrimming fake pseudobulks matching zero original cells.")
         psobject = psobject[psobject.obs[output_metadata_cell_count] > 0].copy()
     if min_cells > 0:
-        too_small = sum(psobject.obs[output_metadata_cell_count] <= min_cells)
+        too_small = sum(psobject.obs[output_metadata_cell_count] < min_cells)
         if too_small == psobject.obs.shape[0]:
             warn(f"Skipping triming pseudobulks smaller than 'min_cells' as NONE were built from more than {min_cells} cells.")
-        if too_small > 0:
+        elif too_small > 0:
             msg_if(f"\tTrimming {too_small} pseudobulks built from fewer than {min_cells} cells.")
             psobject = psobject[psobject.obs[output_metadata_cell_count] >= min_cells].copy()
 
