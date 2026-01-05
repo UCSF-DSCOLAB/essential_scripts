@@ -19,39 +19,55 @@ def dsco_pseudobulk(
 The primary role of this function is standardizing the pseudobulking process.
 Note that it is under construction still and subject to change!.
 
-Pseudobulking is performed per the groupings given by cell_by and any number of sample_by metadata using the scanpy.get.aggregate method to sums counts across cells.
-Beforehand, for MuData 'object's, the targeted modality will be extracted.
+Pseudobulking is performed per the groupings given by cell_by and sample_by metadata using the scanpy.get.aggregate
+method to sum counts across cells. Beforehand, for MuData 'object's, the targeted modality will be extracted.
 
-Raw counts data is normally the desired data for pseudobulking.
-If 'layer' is given, the matrix used for pseudobulking will be the 'object'.layers['layer'].
+Raw counts data is normally the desired data for pseudobulking. If 'layer' is given, the matrix used for pseudobulking
+will be the 'object'.layers['layer'].
 If no 'layer' is given and (default) 'use_raw' = True, the 'object'.raw.X slot element is used for pseudobulking.
 Otherwise, 'object'.X is used in pseudobulking.
 
-The number of cells that each pseudbulk represents are added to a metadata named 'cells_in_pseudobulk' by default, but this column name is adjustable with the 'output_metadata_cell_count' argument.
+The number of cells that each pseudbulk represents are added to a metadata named 'cells_in_pseudobulk' by default, but
+this column name is adjustable with the 'output_metadata_cell_count' argument.
 
 Pseudobulks representing fewer than 'min.cells' cells are removed.
 
-'meta_targets', or all metadata of the target 'object' (or the targeted 'modality' for a muon 'object') are then extracted for each pseudobulk.
+'meta_targets', or all metadata of the target 'object' (or the targeted 'modality' for a muon 'object') are then
+extracted for each pseudobulk.
 For discrete metadata, the column will be ignored if data are not consistent within ALL pseudobulks.
-For numeric metadata, values from each cell in the pseudobulks are summarized by the 'meta_num_summary_method' method, ("median" by default).
+For numeric metadata, values from each cell in the pseudobulks are summarized by the 'meta_num_summary_method' method,
+("median" by default).
 
-Finally, the output structure is determined by the output_style argument, either ('adata') as an AnnData or ('raw') as a dict with keys ['counts', 'feature_names', 'metadata'] 
+Finally, the output structure is determined by the output_style argument, either as an AnnData ('adata') or as a dict
+('raw') with keys ['counts', 'feature_names', 'metadata']
 
-Prior to pseudobulking, particular cell identities or genes can be targeted using the \code{cell.targets} and \code{features} inputs, respectively.
+Prior to pseudobulking, particular cell identities or genes can be targeted using the 'cell_targets' and 'features'
+inputs, respectively.
 
 Arguments:
-    object                      An AnnData or MuData. For MuData objects, only elements inside the internal AnnData of the target 'modality' will remain accessible to the function.
-    samply_by                   A string or list of strings naming columns of 'object'.obs to use for assigning sample identities of cells. A biospecimen, timepoint, or subject name is the common target here, and a batch identifier may be desired as well.
-    cell_by                     String naming the metadata column of 'object'.obs to use for assigning annotation or cluster identities of cells.
+    object                      An AnnData or MuData. For MuData objects, only elements inside the internal AnnData of
+                                the target 'modality' will remain accessible to the function.
+    samply_by                   A string or list of strings naming columns of 'object'.obs to use for assigning sample
+                                identity of cells. A biospecimen, timepoint, or subject name is the common target here,
+                                and a batch identifier may be desired as well.
+    cell_by                     String naming the metadata column of 'object'.obs to use for assigning annotation or
+                                cluster identities of cells.
     layer                       Optionally, a string naming as 'object'.layers key holding the count data.
-    use_raw                     Boolean, True by default, denoting whether to use the object's .raw.X matrix instead of its .X matrix unless a 'layer' is given.
+    use_raw                     Boolean, True by default, denoting whether to use the object's .raw.X matrix instead of
+                                its .X matrix unless a 'layer' is given.
     modality                    String, "rna" by default, giving the modality name to use when 'object' is a MuData.
-    min_cells                   Number, 10 by default, which sets the minimum number of cells that a pseudobulk should represent in order to be retained.
-    cell_targets                Optionally, a string list naming particular 'cell_by' data values to target. Only these cell identities will be retained and pseudobulked.
-    meta_targets                Optionally, a string list naming particular columns of 'object'.obs to target for retention. By default, as much a possible will be retained.
-    meta_num_summary_method     String like "median" (default) or "mean" naming how to summarize numeric metadata describing how to summarize numeric metadata from all cells of each pseudobulk.
-    output_style                'adata' (default) or 'raw'. Determines how data should be returned. Either as an AnnData object, or as a 'raw' dict of the 'counts', 'feature_names', and 'metadata'.
-    output_metadata_cell_count  String ('cells_in_pseudobulk' by default) denoting the metadata column name added to hold the number of original cells going into each pseudobulk.
+    min_cells                   Number, 10 by default, which sets the minimum number of cells that a pseudobulk should
+                                represent in order to be retained.
+    cell_targets                Optionally, a string list naming particular 'cell_by' data values to target. Only these
+                                cell identities will be retained and pseudobulked.
+    meta_targets                Optionally, a string list naming particular columns of 'object'.obs to target for
+                                retention. By default, as much a possible will be retained.
+    meta_num_summary_method     String like "median" (default) or "mean" naming how to summarize numeric metadata
+                                describing how to summarize numeric metadata from all cells of each pseudobulk.
+    output_style                'adata' (default) or 'raw'. Determines how data should be returned. Either as an AnnData
+                                object, or as a 'raw' dict of the 'counts', 'feature_names', and 'metadata'.
+    output_metadata_cell_count  String ('cells_in_pseudobulk' by default) denoting the metadata column name added to
+                                hold the number of original cells going into each pseudobulk.
     verbose                     Logical which controls whether timestamped log messages should be shown
 
 Example call:
