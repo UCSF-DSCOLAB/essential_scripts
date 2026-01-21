@@ -55,6 +55,8 @@ This repo is meant to be used for sharing, in a version controlled way, both hea
     - Per language requirements:
       - Bash: calling the function without required parameters, or with -h or --help, should yield documentation
         - Example reference: [count_cores](c4_utils/count_cores)
+      - Perl: calling the function without required parameters, or with -h or --help, should yield documentation
+        - Example reference: [metis_client_cmd_builder.pl](dl_utils/metis_client_cmd_builder.pl)
       - R: documentation in `roxygen` syntax is heavily recommended, as well as publishing via `document::document()` to create a .txt file rendering (due to lack of language support for retaining documentation alongside of source()-acquired functions).
         - Example reference: [essential_scripts/single_cell/density_plotter.R](essential_scripts/single_cell/density_plotter.R)
       - Python: documentation in `sphinx` syntax is heavily recommended.
@@ -100,6 +102,7 @@ Note: All files deemed share-worthy can be referenced in this table, but only fi
 | c4_utils/count_cores | a command line executable that allows a user to 1) self-monitor their active cores on `krummellab` nodes (default) or 2) use optional flags to query all DSCoLab active jobs to test for core monopoly | Rebecca | main |
 | c4_utils/seff | a command line util that will collect time, core, and memory usages stats for a given job; dependency for `core_count` | Rebecca | main |
 | bash_utils/ts_log.sh, python_utils/ts_log.sh, r_utils/ts_log.R | Scripts for bash, python, and R that yield a function for generating timestamped log messages, named `ts_log`, when sourced. | Dan | main |
+| dl_utils/metis_client_cmd_builder.pl | A command line utility for generating scripts that can be used with metis_client based on return of an initial metis_client `find` command.  One use case might be restricting all VCF files of a project. | Ravi | main |
 | single_cell/density_plotter.R | When `source()`'d, defines an R function that plots density of clusters across the umap space | Dan | main |
 | single_cell/annotation_import.R | When `source()`'d, defines an R function for pulling annotations into Seurat or SCE objects from a csv. An [example 'annots_file'](single_cell/annotation_import_example.csv) and [txt version of the function documentation](single_cell/annotation_import.txt) is also included. | Dan | main | 
 | single_cell/add_module_score_from_excel_gene_sets.R | R code for reading gene sets from an excel file, running Seurat::AddModuleScore, and visualizing the results | Dan | db/sc_module_score |
