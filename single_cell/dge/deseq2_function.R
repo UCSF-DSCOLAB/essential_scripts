@@ -4,7 +4,7 @@ library(tidyverse)
 ### DGE analysis using DESeq2
 #
 #' Run DGE between 2 groups using DESeq2
-#' @param counts: feature (row) x sample (column) raw count matrix
+#' @param counts: feature (row) x sample (column) raw count matrix.  Only samples intended for DGE analysis should be included in \code{counts}
 #' @param metadata: sample metadata, with rownames containing column names of \code{counts}
 #' @param dge_by: name of \code{metadata} column to use DGE comparion. Must have exactly two levels
 #' @param case_group: level to be used as numerator in log2FC calculation
