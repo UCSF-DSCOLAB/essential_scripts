@@ -19,11 +19,7 @@ run_deseq2 <- function(counts, metadata, dge_by, case_group, reference_group, fi
   # Method specific input checks
   # None for DESeq2
 
-  # Determine the number of sample in the smaller group (min_gsize) and keep features that are expressed with CPM > 1 in at least 60% of min_gsize samples, regardless of the sample group identity.
-  min_gsize = min(table(metadata[,dge_by]))
-  feats = names(which(rowSums(cpm(counts) > 1) > (min_gsize * 0.6)))
-  print(paste0("Number of final features: ", length(feats)))
-  counts = counts[feats,]
+  counts = remove_low_expression(counts, metadata, dge_by, min_pct=60)
   
   # Make formula string
   formula_str = paste("~", dge_by)
