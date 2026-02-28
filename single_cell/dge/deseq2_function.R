@@ -12,14 +12,13 @@ library(tidyverse)
 #' @param fixed_effects: a vector of \code{metadata} column names to use as fixed effects
 run_deseq2 <- function(counts, metadata, dge_by, case_group, reference_group, fixed_effects=NULL) {
 
-
   # Commong input checks
   metadata = input_checks(counts, metadata, dge_by, case_group, reference_group, fixed_effects)
 
   # Method specific input checks
   # None for DESeq2
 
-  counts = remove_low_expression(counts, metadata, dge_by, min_pct=60)
+  counts = remove_low_expression(counts, metadata, dge_by, min_frac=0.6)
   
   # Make formula string
   formula_str = paste("~", dge_by)
