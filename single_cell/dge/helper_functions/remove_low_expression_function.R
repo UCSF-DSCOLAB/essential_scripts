@@ -7,7 +7,7 @@
 #' @param dge_groups A vector of group labels (from \code{dge_by}) to consider. Only samples belonging to these groups are used to determine the minimum number of samples required to have CPM > 1. If NULL, all groups in \code{dge_by} are considered.
 #' @param min_frac Genes with counts per million (CPM) more than 1 in at least \code{min_frac} proportion of samples of the smaller group are retained, regardless of group membership. Default 0.6 (i.e., 60%).
 #' @return \code{counts} after removing lowly expressed genes.
-remove_low_expression <- function(counts, metadata, dge_by, dge_groups=NULL, min_frac=0.6) {
+.remove_low_expression <- function(counts, metadata, dge_by, dge_groups=NULL, min_frac=0.6) {
   # Determine the number of sample in the smaller group (min_gsize) and keep features that are expressed with CPM > 1 in at least min_frac of min_gsize samples, regardless of the sample group identity.
   warning("Assuming that the order of samples (columns) in 'counts' matches the order of samples (rows) in 'metadata'.")
   if(is.null(dge_groups)) {
