@@ -1,66 +1,47 @@
 #-- DGE analysis using EdgeR
 
-
-## To do:
-##--- Add make contrast
-## --- pseudobulk here vs not 
-##---- Single_cell experiment, cold accept a seurat objects
-##--- All categorical values, could accept integers
-
-#' @param object: a singlecellexperiment
-#' @param metadata: sample metadata, with rownames containing column names of \code{counts_matrix}
-#' @param pseudobulk_by:  vector of \code{metadata}  metadata name holding clusters or annotations to pseudibulk with
-#' @param cells_group_by: a vector of \code{metadata}  metadata name holding clusters or annotations to explore within
-#' @param skip_cell_type: a vector of \code{metadata}  cells.group.by to skip
-#' @param dge_by: name of \code{metadata} column to use DGE comparion. Must have exactly two levels. 
+#' @param counts: feature (row) x sample (column) raw count matrix.  Only samples intended for DGE analysis should be included in \code{counts}
+#' @param metadata: sample metadata, with rownames containing column names of \code{counts}
+#' @param dge_by: name of \code{metadata} column to use DGE comparion. Must have exactly two levels
+#' @param case_group: level to be used as numerator in log2FC calculation
+#' @param reference_group: level to be used as denominator in log2FC calculation
 #' @param fixed_effects: a vector of \code{metadata} column names to use as fixed effects
 
 
 library(edgeR)
-library(scater)
-library(scuttle)
+library(tidyverse)
 
-run_edger <- function(object, metadata, pseudobulk_by,
-                      cells_group_by, dge_by, case_group, reference_group,
-                      fixed_effects = NULL, skip_cells = NULL) {
+
+run_edger <- function(counts, metadata, dge_by,
+                      case_group, reference_group,
+                      fixed_effects = NULL) 
+{
+  metadata = input_checks(counts, metadata, dge_by, case_group, reference_group, fixed_effects)
   
-  celltypes <- unique(metadata[[cells_group_by]])
-  if (!is.null(skip_cells)) {
-    celltypes <- setdiff(celltypes, skip_cells)
+  ## Create object
+  y <- DGEList(counts, samples = metadata)
+  ## Order case vs reference
+  
+  y$samples[[dge_by]]=as.factor(y$samples[[dge_by]])
+  levels(y$samples[[dge_by]]) = c(reference_group, case_group)    
+  
+  # Filter low expression
+  keep_genes <- filterByExpr(y, group = metadata[[dge_by]], min.prop=.6)
+  y <- y[keep_genes, ]
+  y <- calcNormFactors(y)
+  
+  ## Make formula string
+  formula_str = paste("~", dge_by)
+  if(! is.null(fixed_effects)) {
+    for(fe in fixed_effects) {
+      formula_str = paste(formula_str, "+", fe)
+    }
   }
   
-  counts_matrix <- scuttle::aggregateAcrossCells(object, 
-                                                 id = colData(object)[, c(cells_group_by, pseudobulk_by)])
-  
-  deg_list <- list()
-  
-  for (label in celltypes) {
-    message("Processing: ", label)
-    
-    counts_subset <- counts_matrix[, metadata[[cells_group_by]] == label]
-    y <- DGEList(counts(counts_subset), samples = colData(counts_subset))
-    
-    ncells <- colData(counts_subset)$ncells
-    keep_cells <- ncells >= 10
-    y <- y[, keep_cells]
-    
-    keep_genes <- filterByExpr(y, group = colData(y)[[dge_by]])
-    y <- y[keep_genes, ]
-    
-    y <- calcNormFactors(y)
-    
-    formula_str <- paste("~", paste(c(paste0("factor(", dge_by, ")"), 
-                                      paste0("factor(", fixed_effects, ")")), collapse = " + "))
-    design <- model.matrix(as.formula(formula_str), data = y$samples)
-    
-    y <- estimateDisp(y, design)
-    fit <- glmQLFit(y, design, robust = TRUE)
-    
-    coef_index <- which(colnames(design) == paste0("factor(", dge_by, ")1"))
-    res <- glmQLFTest(fit, coef = coef_index)
-    
-    deg_list[[label]] <- topTags(res, n = Inf)
-  }
-  
-  return(deg_list)
+  ## Make contrast and desing matrix
+  design <- model.matrix(as.formula(formula_str), data = y$samples)
+  y <- estimateDisp(y, design)
+  fit <- glmQLFit(y, design, robust = TRUE)
+  res <- glmQLFTest(fit, coef = paste0(dge_by, case_group))
+  return(topTags(res, n = Inf))
 }
