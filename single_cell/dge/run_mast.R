@@ -177,7 +177,7 @@ run_mast_within_cells <- function(
     reference_group,
     contrast = NULL,
     min_frac, # IMPLEMENT
-    min_per_cell, # IMPLEMENT elsewhere too?
+    min_per_group = 10, # IMPLEMENT elsewhere too?
     log.prefix = '',
     mast.freq.expressed.min = 0.2,
     random_effects = "orig.ident",
@@ -190,18 +190,11 @@ run_mast_within_cells <- function(
         cell_targets <- dittoViz::colLevels(cell_by, metadata)
     }
 
-    ### ToDo: Move this into a .input_checks_within_cells, and focus target groups only
-    rms <- c()
-    grps <- metadata[,dge_by]
-    cts <- metadata[,cell_by]
-    for (cell_targ in cell_targets) {
-        if (any(table(grps[cts==cell_targ])<min_per_cell)) {
-            ts_log(log.prefix, "Skipping cell type ", cell_targ, " because a dge.group has fewer than ", min_per_cell, "cells/samples.")
-        rms <- c(rms, cell_targ)
-        }
-    }
-    cell_targets <- cell_targets[!cell_targets %in% rms]
-    rm(cell_targ)
+    cell_targets <- .input_checks_within_cells(
+        metadata,
+        cell_by, cell_targets,
+        dge_by, case_group, reference_group, contrast
+    )
 
     # Loop through cell types, building dge output for each
     dge_all_list <- lapply(
