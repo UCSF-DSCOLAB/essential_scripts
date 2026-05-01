@@ -8,12 +8,14 @@ suppressPackageStartupMessages({
 source('helpers_load.R')
 
 #' Run DGE between 2 groups using the MAST method
-#' @param counts
-#' @param metadata
-#' @param dge_by String naming a metadata column of \code{object} which holds the sample or cell groupings that you wish to compare between
+#' @param counts A feature (row) x sample (column) raw count matrix.  Values should be integers.  Only samples intended for DGE analysis should be included.
+#' @param metadata data.frame containing cell metadata, with rownames containing column names of \code{counts}.
+#' @param dge_by String naming a column of \code{metadata} which holds the sample or cell groupings that you wish to compare between
 #' @param case_group,reference_group Strings naming the groups of \code{dge_by}-data to compare between. Directionality: Positive log2FC (foldChange) will mean upregulation in \code{case_group} with respect to \code{reference_group}.
-#' @param log.prefix String to append at the beginning of log messages. Useful when wrapping this function inside an external loop.
-#' @param mast.freq.expressed.min A fraction between 0 and 1, default = 0.2, which sets the minimal percent of cells that must express a gene for it to be considered. MAST performs less well for genes with low percent expression. This cutoff is run per each considered \code{cell.group.targets} cell grouping, and only expression among cells of the targeted \code{case_group} and \code{reference_group} groups are considered.
+#' @param log.prefix String to append at the beginning of log messages. Useful when wrapping this function inside an external loop (such us the '_within_cells' version of this function).
+#' @param mast.freq.expressed.min A fraction between 0 and 1, default = 0.2, which sets the minimal percent of cells that must express a gene for it to be considered.
+#' MAST performs less well for genes with low percent expression.
+#' The calculation run only among cells/samples of the targeted \code{case_group} and \code{reference_group} groups.
 #' @param random_effects,fixed_effects # NULL or String vectors naming metadata columns of \code{object} to treat as a random or fixed effects, respectively, in the mixed effect model used for DGE calculation. Additional details:
 #' \itemize{
 #' \item NOTE: \code{random_effects} defaults to "orig.ident" with the assumption that this column generally 1) exists and 2) holds batch information that is normally desired to be modeled as a random effect. Set to NULL, or something different, to turn this off.
@@ -136,8 +138,8 @@ run_mast <- function(
 #' Run DGE between 2 groups using the MAST method, looping through cell types
 #' @param counts Integer counts matrix
 #' @param metadata 
-#' @param cell_by String naming a metadata column of \code{object} which holds clusters, annotations, or other cell groupings to explore within
-#' @param cell_targets NULL or a string vector naming particular levels of the \code{cell.group.by}-data to run DGE within.  When left as \code{NULL}, all cell groupings will be targeted
+#' @param cell_by String naming a column of \code{metadata} which holds clusters, annotations, or other cell groupings to explore within
+#' @param cell_targets NULL (to default to all options) or a string vector naming particular levels of the \code{cell_by}-data to run DGE within.
 #' @param dge_by String naming a metadata column of \code{object} which holds the sample or cell groupings that you wish to compare between
 #' @param case_group,reference_group Strings naming the groups of \code{dge_by}-data to compare between. Directionality: Positive log2FC (foldChange) will mean upregulation in \code{case_group} with respect to \code{reference_group}.
 #' @param log.prefix String to append at the beginning of log messages. Useful when wrapping this function inside an external loop.
@@ -183,15 +185,11 @@ run_mast_within_cells <- function(
     return_model = FALSE
 ) {
 
-    # Establish cell targets if not given
-    if (is.null(cell_targets)) {
-        cell_targets <- dittoViz::colLevels(cell_by, metadata)
-    }
-
     cell_targets <- .input_checks_within_cells(
         metadata,
         cell_by, cell_targets,
-        dge_by, case_group, reference_group, contrast
+        dge_by, case_group, reference_group, contrast,
+        min_per_group
     )
 
     # Loop through cell types, building dge output for each
