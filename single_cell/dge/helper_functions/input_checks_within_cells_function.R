@@ -1,15 +1,29 @@
-#' error if cell-by metadata does not exist
-#' warn about ignoring non-existent cell targets
-#' ??? error if no remaining cell targets
-
-#' Check inputs relevant to looping DGE functions within different cell types, match \code{metadata} rows to \code{counts} columns, and return \code{metadata}.
-#' @param counts A feature (row) x sample (column) raw count matrix. Only samples intended for DGE analysis should be included in \code{counts}.
-#' @param metadata Sample metadata, with rownames containing column names of \code{counts}.
+#' Check inputs relevant to looping DGE functions within different cell types, and adjust 'cell_targets'.
+#' @param metadata data.frame containing cell or sample metadata, with rownames containing column names of \code{counts}.
+#' @param cell_by String naming a column of \code{metadata} which holds clusters, annotations, or other cell groupings to explore within
+#' @param cell_targets NULL (to default to all options) or a string vector naming particular levels of the \code{cell_by}-data to run DGE within.
 #' @param dge_by Name of \code{metadata} column to use DGE comparion. Must have exactly two levels.
 #' @param case_group Group to be used as numerator in log2FC calculation.
 #' @param reference_group Group to be used as denominator in log2FC calculation.
-#' @param fixed_effects A vector of \code{metadata} column names to use as fixed effects.
-#' @param random_effects A vector of \code{metadata} column names to use as random effects.
+#' @param contrast To Be Implemented
+#' @param min_per_group To be changed? Sets a direct numeric minimum of number of cells/samples per group for keeping a given \code{cell_target}
+#' @details Performs all checks necessary to looping accross cell types.
+#'
+#' Ensures that \code{cell_by} names an existing column in \code{metadata}, erroring if not.
+#'
+#' Fills 'cell_targets' with all options if it was left as NULL.
+#'
+#' Checks for any 'cell_targets' with fewer than 'min_per_group' number of samples within \code{case_group} or \code{reference_group}.
+#' Any targets with low cell numbers are trimmed from the cell_targets output, with a warning noting the group with low numbers.
+#'
+#' Finally, ensures at least one 'cell_target' remains (erroring if not) before outputting the final set.
+#' @examples
+#' cell_targets <- .input_checks_within_cells(
+#'     metadata, cell_by, cell_targets,
+#'     dge_by, case_group, reference_group, contrast,
+#'     min_per_group = 0
+#' )
+#' @author Dan Bunis
 .input_checks_within_cells <- function(
     metadata,
     cell_by,
@@ -18,8 +32,7 @@
     case_group,
     reference_group,
     contrast,
-    min_per_group = 0,
-    log_prefix = ""
+    min_per_group = 0
 ) {
 
     # Error if cell-by metadata exists
@@ -50,7 +63,7 @@
             }
 
             # Warn and remove
-            warning(log_prefix, "Skipping cell type ", cell_targ, " because dge_by group(s) ", cols_str, has_str, number_str)
+            warning("Skipping cell type ", cell_targ, " because dge_by group(s) ", cols_str, has_str, number_str)
             rms <- c(rms, cell_targ)
         }
     }
