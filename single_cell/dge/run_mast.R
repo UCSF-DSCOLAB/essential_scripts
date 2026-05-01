@@ -5,9 +5,7 @@ suppressPackageStartupMessages({
   library(data.table)
   library(dittoSeq)
 })
-if (!exists('ts_log')) {
-    source("../../R_utils/ts_log.R")
-}
+source('helpers_load.R')
 
 #' Run DGE between 2 groups using the MAST method
 #' @param counts
