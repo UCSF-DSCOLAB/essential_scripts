@@ -24,6 +24,7 @@
 #'     min_per_group = 0
 #' )
 #' @author Dan Bunis
+#' @importFrom dittoViz colLevels
 .input_checks_within_cells <- function(
     metadata,
     cell_by,
@@ -38,6 +39,12 @@
     # Error if cell-by metadata exists
     if (!cell_by %in% colnames(metadata)) {
         stop("'cell_by' of ", cell_by, " is not a column of metadata")
+    }
+
+    # Establish cell targets if not given
+    if (is.null(cell_targets)) {
+        # dittoViz::colLevels will automatically drop any empty factor-levels, avoiding a potential warning later on
+        cell_targets <- dittoViz::colLevels(cell_by, metadata)
     }
 
     # Check if enough cells in case or reference groups
