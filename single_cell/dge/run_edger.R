@@ -43,5 +43,13 @@ run_edger <- function(counts, metadata, dge_by,
   y <- estimateDisp(y, design)
   fit <- glmQLFit(y, design, robust = TRUE)
   res <- glmQLFTest(fit, coef = paste0(dge_by, case_group))
-  return(topTags(res, n = Inf))
+  
+  # Extract and format DGE results
+  res = topTags(res, n = Inf)$table
+  res = arrange(res, FDR)
+  
+  ## Approximate AveMean:
+  res$AveExp=2^(res$logCPM)
+  res = dplyr::rename(res, "log2FC"="logFC", "pval"="Pvalue", "padj"="FDR")
+  return(res)
 }
