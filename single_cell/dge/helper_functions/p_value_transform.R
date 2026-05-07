@@ -18,6 +18,7 @@
 #' @param value_style_symbol String, '=' by default, giving the spacer to use between \code{value_style_p_string} and the p-value descriptor, when \code{summarize = TRUE} and \vode{summarize_style} is \code{'value'} or \code{'value-l1'}.
 #' @param value_style_compact Logical determining whether to include spaces between \code{value_style_p_string}, \code{value_style_symbol}, and the p-value descriptor, when \code{summarize = TRUE} and \vode{summarize_style} is \code{'value'} or \code{'value-l1'}.
 #' @param warn_if_nothing_done Logical which can be set to FALSE to remove the warning provided if the function is called with parameters that turn off all functions, a.k.a. \code{sumarrize = TRUE} and \code{round = TRUE}.
+#' @return A string or numeric vector of transformed p-values
 #' @details This function rounds and/or transforms given \code{pvals} into any of three summary formats.
 #'
 #' The function DOES NOT perform multiple hypothesis adjustments.  Such adjustment should be performed before running this function.
