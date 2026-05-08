@@ -46,30 +46,30 @@
 #' @examples
 #' ex_pvals <- c(0.5, 0.055, 0.03, 0.003, 0.0003, 0.00003)
 #'
-#' p_value_transform(ex_pvals)
+#' format_pvals(ex_pvals)
 #'
 #' # To only round pvalues, set 'summarize = FALSE'
-#' p_value_transform(ex_pvals, summarize = FALSE)
+#' format_pvals(ex_pvals, summarize = FALSE)
 #' # Note that if 'round_digits' is set too small, you can get labels of '0'
-#' p_value_transform(ex_pvals, summarize = FALSE, round_digits = 3)
+#' format_pvals(ex_pvals, summarize = FALSE, round_digits = 3)
 #'
 #' # Change 'summarize_style' to 'value' or 'value-l1' to have a different
 #' # summarization scheme.
-#' p_value_transform(ex_pvals, summarize_style = 'value')
-#' p_value_transform(ex_pvals, summarize_style = 'value-l1')
+#' format_pvals(ex_pvals, summarize_style = 'value')
+#' format_pvals(ex_pvals, summarize_style = 'value-l1')
 #'
 #' # If your pvalues are not multiple hypothesis adjusted, it is best to change
 #' # 'value_style_p_string' to 'p':
-#' p_value_transform(ex_pvals, summarize_style = 'value',
+#' format_pvals(ex_pvals, summarize_style = 'value',
 #'     value_style_p_string = 'p')
 #'
 #' # To entirely remove the 'pval = ' portion from labels, use all of
 #' # 'value_style_p_string', 'value_style_symbol' and 'value_style_compact':
-#' p_value_transform(ex_pvals, summarize_style = 'value',
+#' format_pvals(ex_pvals, summarize_style = 'value',
 #'     value_style_p_string = '',
 #'     value_style_symbol = '',
 #'     value_style_compact = TRUE)
-#' p_value_transform(ex_pvals, summarize_style = 'value-l1',
+#' format_pvals(ex_pvals, summarize_style = 'value-l1',
 #'     value_style_p_string = '',
 #'     value_style_symbol = '',
 #'     value_style_compact = TRUE)
@@ -77,11 +77,11 @@
 #' # Change 'sig_cut_l1', 'sig_cut_l2', or 'sig_cut_l3' to adjust significance and
 #' # binning cutoffs. E.g. the below example will highlight and show all p-values
 #' # within the murky range of 0.05 to 0.1:
-#' p_value_transform(ex_pvals,
+#' format_pvals(ex_pvals,
 #'     summarize_style = 'value-l1',
 #'     sig_cut_l1 = 0.1,
 #'     sig_cut_l2 = 0.05)
-#' p_value_transform(ex_pvals,
+#' format_pvals(ex_pvals,
 #'     summarize_style = 'value-l1',
 #'     sig_cut_l1 = 0.1,
 #'     sig_cut_l2 = 0.05,
@@ -90,7 +90,7 @@
 #'     value_style_symbol = '',
 #'     value_style_compact = TRUE)
 #' @author Dan Bunis
-p_value_transform <- function(
+format_pvals <- function(
     pvals,
     summarize = TRUE,
     round = TRUE,
