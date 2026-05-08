@@ -13,7 +13,7 @@ library(tidyverse)
 run_deseq2 <- function(counts, metadata, dge_by, case_group, reference_group, fixed_effects=NULL) {
 
   # Commong input checks
-  .input_checks(counts, metadata, dge_by, case_group, reference_group, fixed_effects)
+  contrasts = .input_checks(counts, metadata, dge_by, case_group, reference_group, fixed_effects)
 
   # Method specific input checks
   # None for DESeq2
