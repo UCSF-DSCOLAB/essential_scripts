@@ -25,20 +25,14 @@ source('helpers_load.R')
 #' @return DGE result data frame or model
 run_dreamlet = function(counts, metadata, dge_by=NULL, case_group=NULL, reference_group=NULL,
 	     contrasts=NULL, dge_groups=NULL,
-	    fixed_effects=NULL, random_effects=NULL, 
+	     fixed_effects=NULL, random_effects=NULL, 
        min_frac=0.6, MIN.COUNT=5, return_model=F){
 
-  .input_checks(counts, metadata, dge_by, case_group, reference_group, contrasts, fixed_effects, random_effects)
+  .input_checks(counts, metadata, dge_by, case_group, reference_group, contrasts, fixed_effects, random_effects, min_frac, return_model)
  
   # TODO .input_checks_function.R
-  # - add these
-  # - add an input check for contrasts
-  # - add an input check for return_model, min_frac
-  # - MIN.COUNT?
-  if (!all(counts == as.integer(counts))) warning("Warning. The count matrix contains non-integer entries")
-  if (!is.null(dge_by) & is.numeric(metadata[[dge_by]])){
-    warning("Warning. You have provided a numeric variable as your grouping of interest. This will be converted to a factor when calculating group size.")
-  }
+  # - contrasts
+  # MIN.COUNT?
   
   counts = .remove_low_expression_genes(counts, metadata, dge_by, dge_groups, min_frac)
 
@@ -83,11 +77,17 @@ run_dreamlet = function(counts, metadata, dge_by=NULL, case_group=NULL, referenc
                }))
   
 
-  ## reformat the DGE output
+  # TODO reformat the DGE output
   # log2FC, avgExpr, pval, padj, celltype, fracCase, fracRef
   return(dge.df)
 }
 
+#'  Run dreamlet within each cell type and add a column for cell type to the output
+#' @param counts matrix of pseudobulked count data where columns are samples and rows are genes
+#' @param metadata metadata where rows are the samples from the count matrix and columns are variables
+#' @param cell_by String naming the metadata column that contains the cell type information
+#' @param cell_targets NULL or vector of cell types to run the analysis on. If NULL, the function will run on all cell types in the cell_by column.
+#' @param min_per_group Minimum number of samples per group required to run DGE analysis within a cell type. 
 run_dreamlet_within_cells = function(counts, metadata, cell_by, cell_targets, min_per_group=10, ...){
   # this function will run dreamlet within each cell type and add a column for cell type to the output
 
@@ -97,12 +97,8 @@ run_dreamlet_within_cells = function(counts, metadata, cell_by, cell_targets, mi
         dge_by, case_group, reference_group, contrasts, 
         min_per_group
     ) 
-  # TODO:
-  # .input_checks_within_cells needs to:
-  #  - check that cell_targets are part of the cell_by column
-  #  - also work if it's contrasts
-  #  - check min_per_grp is numeric
-
+  # TODO .input_checks_within_cells needs to:
+  #  - also work if its contrasts
 
   dge_list = lapply(cell_targets, function(ct){
     print(paste0("Running dreamlet for cell type ", ct))
