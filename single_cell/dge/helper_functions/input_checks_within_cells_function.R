@@ -37,14 +37,9 @@
 ) {
 
     # Error if cell-by metadata does not exist
-    if (!cell_by %in% colnames(metadata)) {
-        stop("'cell_by' of ", cell_by, " is not a column of metadata")
-    }
+    if (!cell_by %in% colnames(metadata))  stop("'cell_by' of ", cell_by, " is not a column of metadata")
     # check min-per-group is numeric
-    if (!as.numeric(min_per_group) == min_per_group) {
-        stop("'min_per_group' of ", min_per_group, " is not numeric")
-    }
-    
+    if (!as.numeric(min_per_group) == min_per_group) stop("'min_per_group' of ", min_per_group, " is not numeric")
     # check cell targets are in the cell_by column
     if (!is.null(cell_targets) & !all(cell_targets %in% metadata[,cell_by])) {
         stop("The following 'cell_targets' are not levels of the 'cell_by' column: ", paste0(cell_targets[!cell_targets %in% metadata[,cell_by]], collapse = ", "))
@@ -56,49 +51,48 @@
         cell_targets <- dittoViz::colLevels(cell_by, metadata)
     }
 
-    # needed for min_per_group check below
-    if (!is.null(case_group) | !is.null(reference_group)) {
+    # Check if enough cells in case or reference groups
+    if (!is.null(case_group) & !is.null(reference_group)) {
         .input_check_dge_case_ref(metadata, dge_by, case_group, reference_group) 
+  
+        rms <- c()
+        for (cell_targ in cell_targets) {
+            case_low <- sum(metadata[,dge_by]==case_group) <= min_per_group
+            ref_low <- sum(metadata[,dge_by]==reference_group) <= min_per_group
+            lows <- c(case_group, reference_group)[c(case_low, ref_low)]
+
+            if (length(lows) >= 0) {
+
+                # Construct warning
+                cols_str <- paste0(paste0("'", lows, "'", collapse = "' and '"))
+                has_str <- if (length(lows)>1) {
+                    " have "
+                } else {
+                    " has "
+                }
+                number_str <- if (min_per_group > 0) {
+                    paste0(min_per_group, " or fewer cells/samples.")
+                } else {
+                    "zero samples."
+                }
+
+                # Warn and remove
+                warning("Skipping cell type ", cell_targ, " because dge_by group(s) ", cols_str, has_str, number_str)
+                rms <- c(rms, cell_targ)
+            }
+        }
+
+        # Return cell_targets not removed, unless none leftover
+        cell_targets <- cell_targets[!cell_targets %in% rms]
+
     } else if (is.null(contrasts)) {
         stop("Error. Either case_group and reference_group or contrasts must be provided for DGE analysis.")  
+    } else {
+        warning("No case_group or reference_group provided, so min_per_group check cannot be performed. Proceeding with all cell targets.")
     }
 
-    # TODO add version for contrasts
-
-    # Check if enough cells in case or reference groups
-    rms <- c()
-    for (cell_targ in cell_targets) {
-        case_low <- sum(metadata[,dge_by]==case_group) <= min_per_group
-        ref_low <- sum(metadata[,dge_by]==reference_group) <= min_per_group
-        lows <- c(case_group, reference_group)[c(case_low, ref_low)]
-
-        if (length(lows) >= 0) {
-
-            # Construct warning
-            cols_str <- paste0(paste0("'", lows, "'", collapse = "' and '"))
-            has_str <- if (length(lows)>1) {
-                " have "
-            } else {
-                " has "
-            }
-            number_str <- if (min_per_group > 0) {
-                paste0(min_per_group, " or fewer cells/samples.")
-            } else {
-                "zero samples."
-            }
-
-            # Warn and remove
-            warning("Skipping cell type ", cell_targ, " because dge_by group(s) ", cols_str, has_str, number_str)
-            rms <- c(rms, cell_targ)
-        }
-    }
-
-    # Return cell_targets not removed, unless none leftover
-    cell_targets <- cell_targets[!cell_targets %in% rms]
-
-    # ToAsk: Should this be a warning???
     # Error if no remaining cell targets
-    if (lenght(cell_targets)<1) {
+    if (length(cell_targets)<1) {
         stop("No cell_targets remain with enough cells")
     }
     cell_targets

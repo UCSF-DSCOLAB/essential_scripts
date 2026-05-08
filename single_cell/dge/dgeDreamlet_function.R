@@ -28,13 +28,21 @@ run_dreamlet = function(counts, metadata, dge_by=NULL, case_group=NULL, referenc
 	     fixed_effects=NULL, random_effects=NULL, 
        min_frac=0.6, MIN.COUNT=5, return_model=F){
 
-  .input_checks(counts, metadata, dge_by, case_group, reference_group, contrasts, fixed_effects, random_effects, min_frac, return_model)
+  .input_checks(counts, metadata, dge_by, case_group, reference_group, contrasts, dge_groups, fixed_effects, random_effects, min_frac, return_model)
  
-  # TODO .input_checks_function.R
-  # - contrasts
-  # MIN.COUNT?
+  # check MIN.COUNT is numeric and greater than 0
+  if (!is.numeric(MIN.COUNT) | MIN.COUNT < 0)  stop("Error. MIN.COUNT of ", MIN.COUNT, " is not a positive numeric value")
+  # NOTE do we want to use MIN.COUNT across all functions?
   
   counts = .remove_low_expression_genes(counts, metadata, dge_by, dge_groups, min_frac)
+
+  # filter based on dge_groups 
+  if (!is.null(dge_groups)) {
+    sample_idx = metadata[, dge_by] %in% dge_groups
+    counts = counts[, sample_idx]
+    metadata = metadata[sample_idx, ]
+  }
+  metadata = .format_dge_groups(metadata, dge_by, case_group, reference_group)
 
   # create an object from the pb counts and metadata
   pb = SingleCellExperiment::SingleCellExperiment(assays=list(counts=as.matrix(counts)),
@@ -57,32 +65,34 @@ run_dreamlet = function(counts, metadata, dge_by=NULL, case_group=NULL, referenc
       model <- paste0(model, " + (1 | ", rand, ")")
   }
   
-  # TODO add option for running dreamlet w/o contrasts
-
-  # fit model
+  # TODO make code cleaner for this section - we can probably do something with the contrasts argument to make this more streamlined?
   print(sprintf("Fitting model %s", model))
-  res.dl = dreamlet::dreamlet(res.proc, as.formula(model), contrasts=contrasts)
-
-  if (return_model) {
-    return(res.dl)
-  }
-
-  # pull out and format DGEs
-  dge.df = do.call(rbind,
-               lapply(setdiff(dreamlet::coefNames(res.dl), "(Intercept)"), 
-               function(x){
+  if (!is.null(case_group) & !is.null(reference_group)) {
+    res.dl = dreamlet::dreamlet(res.proc, as.formula(model))
+    if (return_model) return(res.dl)
+    
+    var_str = paste0(dge_by, case_group)
+    dge.df = limma::topTable(res.dl, var_str, number=nrow(counts)) %>% 
+      dplyr::select(gene = rownames(.), logFC, AveExpr, P.Value, adj.P.Val) %>%
+      
+  } else {
+    .input_check_contrasts(metadata, model, contrasts)
+    res.dl = dreamlet::dreamlet(res.proc, as.formula(model), contrasts=contrasts)
+    if (return_model) return(res.dl)
+    
+    dge.df = do.call(rbind, lapply(contrasts, function(x){
                  coef.df = tibble::as_tibble(limma::topTable(res.dl, x, number=nrow(counts)))
                  coef.df$contrast = x
-                 return(coef.df)
-               }))
-  
+                 return(coef.df)})) %>% 
+      dplyr::select(gene = rownames(.), logFC, AveExpr, P.Value, adj.P.Val, contrast) 
+  }
 
-  # TODO reformat the DGE output
-  # log2FC, avgExpr, pval, padj, celltype, fracCase, fracRef
+  dge.df = dge.df %>% 
+    dplyr::rename(dge.df, log2FC = logFC, avgExpr = AveExpr, pval = P.Value, padj = adj.P.Val)
   return(dge.df)
 }
 
-#'  Run dreamlet within each cell type and add a column for cell type to the output
+#' Run dreamlet within each cell type and add a column for cell type to the output
 #' @param counts matrix of pseudobulked count data where columns are samples and rows are genes
 #' @param metadata metadata where rows are the samples from the count matrix and columns are variables
 #' @param cell_by String naming the metadata column that contains the cell type information
@@ -97,8 +107,6 @@ run_dreamlet_within_cells = function(counts, metadata, cell_by, cell_targets, mi
         dge_by, case_group, reference_group, contrasts, 
         min_per_group
     ) 
-  # TODO .input_checks_within_cells needs to:
-  #  - also work if its contrasts
 
   dge_list = lapply(cell_targets, function(ct){
     print(paste0("Running dreamlet for cell type ", ct))
