@@ -28,7 +28,7 @@
 #' Pvalues are summarized when \code{summarize} is \code{TRUE}, by first binning pvalues,
 #' then labeling in one of three general ways depending on the value of \code{summarize_style}:
 #' \itemize{
-#' \item \code{*} = 4 bins: 'NS', \code{*}, \code{**}, \code{***}
+#' \item \code{*} = 4 bins: \code{NS}, \code{*}, \code{**}, \code{***}
 #' \item \code{value} = 2 bins: \code{NS}, \code{<pval>}
 #' \item \code{value-l1} = 4 bins: \code{NS}, \code{<pval>}, \code{pval < 0.001}, \code{pval < 0.0001}
 #' }
