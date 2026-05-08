@@ -10,7 +10,8 @@ library(tidyverse)
 #' @param case_group Group to be used as numerator in log2FC calculation.
 #' @param reference_group Group to be used as denominator in log2FC calculation.
 #' @param fixed_effects A vector of \code{metadata} column names to use as fixed effects.
-run_deseq2 <- function(counts, metadata, dge_by, case_group, reference_group, fixed_effects=NULL) {
+#' @param return_model A boolean indicating whether the function should return the model (TRUE) or the data.frame of differential expression analysis results.
+run_deseq2 <- function(counts, metadata, dge_by, case_group, reference_group, fixed_effects=NULL, return_model = FALSE) {
 
   # Commong input checks
   contrasts = .input_checks(counts, metadata, dge_by, case_group, reference_group, fixed_effects)
@@ -36,8 +37,13 @@ run_deseq2 <- function(counts, metadata, dge_by, case_group, reference_group, fi
   res = results(dds, contrast = c(dge_by, case_group, reference_group)) %>% as.data.frame()
   res = arrange(res, padj)
   
-  res = dplyr::rename(res, "logFC"="log2FoldChange", "AveExpr"="baseMean", "P.Value"="pvalue", "adj.P.Val"="padj")
-  return(res)
+  res = dplyr::rename(res, "log2FC"="log2FoldChange", "aveExpr"="baseMean", "pval"="pvalue", "padj"="padj")
+
+  if(return_model) {
+    return(dds)
+  } else {
+    return(res)
+  }
 }
 
 
