@@ -1,3 +1,7 @@
+library(tidyverse)
+library(plotly)
+library(htmlwidgets)
+
 #' Create a summary heatmap of enrichment analysis results
 #'
 #' Generates an interactive heatmap from filtered enrichment results and 
