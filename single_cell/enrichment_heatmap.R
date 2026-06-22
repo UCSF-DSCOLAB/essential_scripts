@@ -42,6 +42,16 @@ library(htmlwidgets)
 #'
 #' @examples
 #' \dontrun{
+#' # An example data frame to demonstrate the structure of the input data frame.
+#' my_gsea_results = data.frame(
+#'     pathway = c('LABCD8_IFN','LABCD8_IFN_Module','LABCD8_ISG','KEGG_PROTEASOME','REACTOME_ABC_TRANSPORTER_DISORDERS','REACTOME_ANTIGEN_PROCESSING_CROSS_PRESENTATION'),
+#'     padj = c('0.00221604027912997','0.0717798958531707','0.000731840566458411','0.0467085946901833','0.0571030113172619','0.0746338661273512'),
+#'     NES = c('1.91638152494958','1.74199063631165','2.03991528803013','1.91334841630672','1.62183620773234','1.53659018078308'),
+#'     leadingEdge = c('GBP5, TRIM21, OAS2, STAT1, EPSTI1, GBP4', 'GBP2, TAP1, STAT1, EPSTI1, IFI16, APOBEC3D, GBP4',  'PSMC4, PSMA5, PSMD4, PSME2, PSMB2, PSMB10, PSMB9, PSMB4, SEM1',  'RNF5, PSMC4, PSMA5, PSMD4, PSME2, PSMB2', 'PSMB10, PSMD10, PSMB9, PSMB4', 'TAP1, IKBKG, LY96, PSMC4, PSMA5, TAP2, PSMD4, PSME2, PSMB2, PSMB10, PSMD10K'),
+#'     dataset = c('CD4_CTL','B_mem_CD11c','B_mem_not_switched','B_mem_switched','B_naive','CD4_CTL')
+#' )
+#' 
+#' # Make a heatmap
 #' make_enrichment_heatmap(
 #'   df = my_gsea_results, 
 #'   order_by = "padj",
