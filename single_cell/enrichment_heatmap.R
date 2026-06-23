@@ -19,7 +19,7 @@ library(htmlwidgets)
 #'     \item \code{pathway}: Name of the pathway.
 #'     \item \code{padj}: Adjusted p-value.
 #'     \item \code{NES}: Normalized enrichment score or direction of enrichment (e.g., -1 vs 1).
-#'     \item \code{leadingEdge}: String of features separated by ", " (comma and space).
+#'     \item \code{leadingEdge}: String of leading-edge features, separated by \code{le_separator}.
 #'     \item \code{dataset}: Name of the source dataset (name of the celltype/comparison used for 
 #'     calculating the input log2FC for the enrichment analysis). 
 #'     The \code{dataset} will become columns of the heatmap.
@@ -31,6 +31,7 @@ library(htmlwidgets)
 #'   chance for similar p-values between pathways with highly overlapping features. 
 #'   But clustering by leadingEdge tries to do that explicitly, though this 
 #'   functionality is not fully tested yet.
+#' @param le_separator Separator used to separate leading-edge features in \code{leadingEdge} column of \code{df}. Default ", " (a command and a space).
 #' @param html_output_path File path for the output HTML. (e.g., \code{/path/to/my.html})
 #' @param plot_title Plot title displayed above the plot.
 #' @param return_ggplot A boolean indicating if the plot should be returned or be printed to an HTML file.
@@ -64,11 +65,13 @@ library(htmlwidgets)
 #' plot = make_enrichment_heatmap(
 #'   df = my_gsea_results, 
 #'   order_by = "leadingEdge",
+#'   le_separator = ", ",
 #'   plot_title = "Pathway Enrichment",
 #'   return_ggplot = TRUE
 #' )
 #' } 
 make_enrichment_heatmap <- function(df, order_by = c("leadingEdge", "padj"), 
+                                    le_separator = ", ",
                                     html_output_path = "../analysis/10x/dge_analysis/tmp/interactive_heatmap.html", 
                                     plot_title="Enrichment analysis results",
                                     return_ggplot = FALSE) {
@@ -92,7 +95,7 @@ make_enrichment_heatmap <- function(df, order_by = c("leadingEdge", "padj"),
   df$leadingEdge = sapply(df$leadingEdge, function(x) {
     genes <- strsplit(x, ",\\s*")[[1]]
     groups <- split(genes, ceiling(seq_along(genes) / 8))
-    lines <- sapply(groups, paste, collapse = ", ")
+    lines <- sapply(groups, paste, collapse = le_separator)
     result <- paste(lines, collapse = ",<br>")
     result
   })
@@ -159,7 +162,7 @@ make_enrichment_heatmap <- function(df, order_by = c("leadingEdge", "padj"),
 #' Calculate order of rows and columns of a heatmap based on the overlap between leading-edge features.
 #' For calculating the order of rows, the leading-edge features across columns are combined, pair-wise overlap matrix is calculated, and 
 order_by_le_overlap <- function(df) {
-  le = sapply(df$leadingEdge, function(x) unlist(str_split(x, ", ")) )
+  le = sapply(df$leadingEdge, function(x) unlist(str_split(x, le_separator)) )
   
   # Order of rows / pathways
   le_by = list()
