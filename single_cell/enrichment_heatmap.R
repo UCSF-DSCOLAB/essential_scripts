@@ -93,10 +93,10 @@ make_enrichment_heatmap <- function(df, order_by = c("leadingEdge", "padj"),
     mutate(padj_lbl = format.pval(padj, 1),
       leadingEdge = paste0(dataset, "<br>", pathway, "<br>padj: ", padj_lbl, "|NES: ", round(NES,2), "<br>", leadingEdge))
   df$leadingEdge = sapply(df$leadingEdge, function(x) {
-    genes <- strsplit(x, ",\\s*")[[1]]
+    genes <- strsplit(x, le_separator)[[1]]
     groups <- split(genes, ceiling(seq_along(genes) / 8))
     lines <- sapply(groups, paste, collapse = le_separator)
-    result <- paste(lines, collapse = ",<br>")
+    result <- paste(lines, collapse = paste0(le_separator, "<br>"))
     result
   })
   
