@@ -56,6 +56,19 @@
 #'   \code{return_model = TRUE}, the fitted model object(s) instead.
 #'
 #' @export
+#' @examples
+#' source('single_cell/dge/fxns_load__SOURCE_ME.R', chdir = TRUE)
+#' library(Seurat)
+#' expr <- GetAssayData(pbmc_small, layer = 'counts')
+#' run_dge(
+#'     counts = expr, metadata = pbmc_small@meta.data,
+#'     method = 'mast',
+#'     dge_by = 'groups',
+#'     cell_by = 'RNA_snn_res.0.8',
+#'     case_group = 'g1',
+#'     reference_group = 'g2'
+#' )
+#'
 run_dge <- function(counts,
                     metadata,
                     dge_by,
@@ -63,6 +76,7 @@ run_dge <- function(counts,
                     cell_by = NULL,
                     case_group = NULL,
                     reference_group = NULL,
+                    cell_targets = NULL,
                     contrasts = NULL,
                     dge_groups = c(case_group, reference_group),
                     fixed_effects = NULL,
@@ -91,6 +105,7 @@ run_dge <- function(counts,
         cell_by = cell_by,
         case_group = case_group,
         reference_group = reference_group,
+        cell_targets = cell_targets,
         contrasts = contrasts,
         dge_groups = dge_groups,
         fixed_effects = fixed_effects,
@@ -100,13 +115,13 @@ run_dge <- function(counts,
     )
 
     # Perform input checks by invoking ".input_checks()"
-    validated_data = do.call( .input_checks, input_args)
+    validated_data = do.call( .input_validation, input_args)
     input_args[['counts']] = validated_data[['counts']]
     input_args[['metadata']] = validated_data[['metadata']]
     input_args[['contrasts']] = validated_data[['contrasts']]
 
     # Iterate over cell-types or clusters
-    cell_types = unique( input_args$metadata[, input_args$cell_by ] )
+    cell_types = validated_data[['cell_targets']]
     dge_results = list()
 
     for(ct in cell_types) {
@@ -129,5 +144,5 @@ run_dge <- function(counts,
     }
 
     # Return the DGE results
-    return(dge_results)
+    dge_results
 }
