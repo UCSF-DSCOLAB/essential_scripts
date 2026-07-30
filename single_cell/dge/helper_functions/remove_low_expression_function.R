@@ -17,7 +17,7 @@
     sample_idx = metadata[, dge_by] %in% dge_groups
   }
   min_gsize = min(table(metadata[ sample_idx, dge_by]))
-  feats = names(which(rowSums(cpm(counts[, sample_idx]) > 1) > (min_gsize * min_frac)))
+  feats = names(which(rowSums(edgeR::cpm(counts[, sample_idx]) > 1) > (min_gsize * min_frac)))
   cat(paste0("Number of final features: ", length(feats)), "\n")
   counts = counts[feats,]
   return(counts)
