@@ -101,7 +101,7 @@ dsco_pseudobulk <- function(
     ### Pseudobulk
     # (Trim to features internally)
     if (method == 'Seurat') {
-        msg_if("Initiating pseudobulking with Seurat's AggregateExpression...")
+        print("Initiating pseudobulking with Seurat's AggregateExpression...")
         group.metas <- c(sample.by, cell.by)
         psobject <- Seurat::AggregateExpression(
             object = object, return.seurat = TRUE, group.by = group.metas,
@@ -109,6 +109,7 @@ dsco_pseudobulk <- function(
             assays = assay)
 
         ### Add cell counts and Trim too small pseudobulks
+        print("Adding cell counts as metadata")
         msg_if("Adding cell counts as metadata '", output.metadata.cell.count, "'.")
         psobject@meta.data[,output.metadata.cell.count] <- vapply(
             seq_len(ncol(psobject)),
