@@ -103,10 +103,32 @@ dsco_pseudobulk <- function(
     if (method == 'Seurat') {
         print("Initiating pseudobulking with Seurat's AggregateExpression...")
         group.metas <- c(sample.by, cell.by)
-        psobject <- Seurat::AggregateExpression(
-            object = object, return.seurat = TRUE, group.by = group.metas,
-            features = features,
-            assays = assay)
+        if (packageVersion('Seurat')>'5.0') {
+            psobject <- Seurat::AggregateExpression(
+                object = object, return.seurat = TRUE, group.by = group.metas,
+                features = features,
+                assays = assay)
+        } else {
+            psobject <- Seurat::AggregateExpression(
+                object = object, return.seurat = TRUE, group.by = group.metas,
+                features = features,
+                assays = assay,
+                slot = "counts")
+            # Prior versions do not retain group.by metadata
+            expected_name <- apply(object@meta.data[,group.metas], 1, FUN = function(x) {paste(x, collapse = "_")})
+            ind_match <- match(colnames(psobject), expected_name)
+            for (col in group.metas) {
+                psobject@meta.data[col] <- object@meta.data[ind_match,col]
+            }
+        }
+        
+        find_cells_in_pseudo <- function(object, psobject, col_targs, i) {
+            in_pseudo <- rep(TRUE, ncol(object))
+            for (col in col_targs) {
+                in_pseudo <- in_pseudo & object@meta.data[,col]==as.vector(psobject@meta.data[i,col])
+            }
+            in_pseudo
+        }
 
         ### Add cell counts and Trim too small pseudobulks
         print("Adding cell counts as metadata")
@@ -114,21 +136,15 @@ dsco_pseudobulk <- function(
         psobject@meta.data[,output.metadata.cell.count] <- vapply(
             seq_len(ncol(psobject)),
             function(i) {
-                # Using unlist for ignorance of rownames (cell vs pseudobulk won't match!)
-                targ <- unlist(psobject@meta.data[i,group.metas])
-                sum(
-                    apply(object@meta.data[,group.metas], 1, function(x) {
-                        identical(unlist(x), targ)
-                    })
-                )
+                sum(find_cells_in_pseudo(object, psobject, group.metas, i))
             },
             numeric(1)
         )
-        too_small <- psobject@meta.data[,output.metadata.cell.count] < min.cells
-        if (too_small == ncol(psobject)) {
+        num_small <- sum(psobject@meta.data[,output.metadata.cell.count] < min.cells)
+        if (num_small == ncol(psobject)) {
             warning(paste0("Skipping triming pseudobulks smaller than 'min_cells' as NONE were built from more than ", min_cells, " cells."))
-        } else if (too_small > 0) {
-            msg_if("\tTrimming ", too_small, " pseudobulks built from fewer than ", min_cells, " cells.")
+        } else if (num_small > 0) {
+            msg_if("\tTrimming ", num_small, " pseudobulks built from fewer than ", min_cells, " cells.")
             psobject <- psobject[,psobject@meta.data[,output.metadata.cell.count] >= min.cells]
         }
 
@@ -152,21 +168,18 @@ dsco_pseudobulk <- function(
                         assign('meta_ignored', c(meta_ignored, name), inherits = TRUE)
                         NA
                     } else {
-                        df_col[1]
+                        as.vector(df_col[1])
                     }
                 }
             }
         }
         for (i in seq_len(ncol(psobject))) {
-            targ <- unlist(psobject@meta.data[i,group.metas])
-            matches <- apply(object@meta.data[,group.metas], 1, function(x) {
-                identical(unlist(x), targ)
-            })
+            in_pseudo <- find_cells_in_pseudo(object, psobject, group.metas, i)
             for (meta in meta.targets) {
                 if (i == 1) {
                     psobject@meta.data[,meta] <- NA
                 }
-                psobject@meta.data[i,meta] <- meta_collapse(object@meta.data[matches,meta], meta)
+                psobject@meta.data[i,meta] <- meta_collapse(object@meta.data[in_pseudo,meta], meta)
             }
         }
         psobject@meta.data <- psobject@meta.data[,!colnames(psobject@meta.data)%in% meta_ignored]
