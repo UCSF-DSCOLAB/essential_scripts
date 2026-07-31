@@ -6,7 +6,8 @@
 .to_source <- c(
     list.files('helper_functions', pattern = '.R', full.names = TRUE),
     list.files(pattern = 'run_.*\\.R', full.names = TRUE),
-    '../../R_utils/ts_log.R'
+    '../../R_utils/ts_log.R',
+    '../pseudobulk_function.R'
 )
 for (.file in .to_source) {
     source(.file)
