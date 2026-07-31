@@ -38,7 +38,7 @@
 #'   the Benjamini-Hochberg method separately for each contrast.
 #'
 #' @export
-run_dge_limma <- function(
+run_limma_voom <- function(
     counts,
     metadata,
     dge_by,
@@ -51,10 +51,10 @@ run_dge_limma <- function(
 ) {
     # Check and validate dependencies
     if (!requireNamespace("limma", quietly = TRUE)) {
-        stop("The 'limma' package is required to run run_dge_limma().", call. = FALSE)
+        stop("The 'limma' package is required to run run_limma_voom().", call. = FALSE)
     }
     if (!requireNamespace("edgeR", quietly = TRUE)) {
-        stop("The 'edgeR' package is required to run run_dge_limma().", call. = FALSE)
+        stop("The 'edgeR' package is required to run run_limma_voom().", call. = FALSE)
     }
 
     if (length(random_effects) > 1L) {

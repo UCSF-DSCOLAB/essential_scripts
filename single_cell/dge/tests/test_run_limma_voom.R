@@ -1,4 +1,4 @@
-source(file.path("single_cell", "dge", "run_dge_limma.R"))
+source(file.path("single_cell", "dge", "run_limma_voom.R"))
 
 set.seed(101)
 sample_ids <- paste0("sample_", seq_len(12))
@@ -17,7 +17,7 @@ counts <- matrix(
 counts[seq_len(5), metadata$condition == "case"] <-
     counts[seq_len(5), metadata$condition == "case"] + 150L
 
-pairwise_results <- run_dge_limma(
+pairwise_results <- run_limma_voom(
     counts = counts,
     metadata = metadata,
     dge_by = "condition",
@@ -34,7 +34,7 @@ stopifnot(
     pairwise_results$log2FC[pairwise_results$gene == "gene_1"] > 0
 )
 
-blocked_results <- run_dge_limma(
+blocked_results <- run_limma_voom(
     counts = counts,
     metadata = metadata,
     dge_by = "condition",
@@ -45,7 +45,7 @@ blocked_results <- run_dge_limma(
 )
 stopifnot(nrow(blocked_results) == nrow(counts))
 
-design_model <- run_dge_limma(
+design_model <- run_limma_voom(
     counts = counts,
     metadata = metadata,
     dge_by = "condition",
@@ -56,7 +56,7 @@ design_model <- run_dge_limma(
 )
 stopifnot(inherits(design_model, "MArrayLM"))
 
-custom_results <- run_dge_limma(
+custom_results <- run_limma_voom(
     counts = counts,
     metadata = metadata,
     dge_by = "condition",
@@ -71,7 +71,7 @@ stopifnot(
     all(custom_results$contrast == "case_vs_reference")
 )
 
-multiple_contrast_results <- run_dge_limma(
+multiple_contrast_results <- run_limma_voom(
     counts = counts,
     metadata = metadata,
     dge_by = "condition",
@@ -88,7 +88,7 @@ stopifnot(
 
 multiple_random_effects_error <- tryCatch(
     {
-        run_dge_limma(
+        run_limma_voom(
             counts = counts,
             metadata = metadata,
             dge_by = "condition",
