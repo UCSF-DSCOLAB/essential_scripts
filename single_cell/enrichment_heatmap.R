@@ -80,7 +80,7 @@ make_enrichment_heatmap <- function(df, order_by = c("leadingEdge", "padj"),
   df$padj_signed = sign(df$NES) * -log10(df$padj)
   
   if(order_by == "leadingEdge") {
-    orders = order_by_le_overlap(df)
+    orders = order_by_le_overlap(df, le_separator)
   } else if(order_by == "padj") {
     orders = order_by_padj(df)
   }
@@ -161,7 +161,7 @@ make_enrichment_heatmap <- function(df, order_by = c("leadingEdge", "padj"),
 
 #' Calculate order of rows and columns of a heatmap based on the overlap between leading-edge features.
 #' For calculating the order of rows, the leading-edge features across columns are combined, pair-wise overlap matrix is calculated, and 
-order_by_le_overlap <- function(df) {
+order_by_le_overlap <- function(df, le_separator) {
   le = sapply(df$leadingEdge, function(x) unlist(str_split(x, le_separator)) )
   
   # Order of rows / pathways
