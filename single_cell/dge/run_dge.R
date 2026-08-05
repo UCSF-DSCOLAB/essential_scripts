@@ -54,11 +54,17 @@
 #'   row per gene, per cell-type if \code{cell_by} is specified) including
 #'   log2 fold change, p-values, and adjusted p-values. If
 #'   \code{return_model = TRUE}, the fitted model object(s) instead.
+#' @details ... Some differences to note for particular methods (edgeR implementation relies on same low expression filter, rather than edgeR-specific version)
 #'
 #' @export
 #' @examples
+#' # Read in all the unified DGE functions
 #' source('single_cell/dge/fxns_load__SOURCE_ME.R', chdir = TRUE)
-#' library(Seurat)
+#'
+#' # Loading example data
+#' library(Seurat) # for pbmc_small, but we will need something better!
+#'
+#' ### Running at the single-cell level with MAST
 #' expr <- GetAssayData(pbmc_small, layer = 'counts')
 #' run_dge(
 #'     counts = expr, metadata = pbmc_small@meta.data,
@@ -69,20 +75,39 @@
 #'     reference_group = 'g2'
 #' )
 #'
-run_dge <- function(counts,
-                    metadata,
-                    dge_by,
-                    method = c('deseq2', 'dreamlet', 'edger', 'mast'),
-                    cell_by = NULL,
-                    case_group = NULL,
-                    reference_group = NULL,
-                    cell_targets = NULL,
-                    contrasts = NULL,
-                    dge_groups = c(case_group, reference_group),
-                    fixed_effects = NULL,
-                    random_effects = NULL,
-                    min_frac = 0.6,
-                    return_model = FALSE) {
+#' # Running at the pseudobulk level with a pseudobulk dge tool
+#' pseudo <- dsco_pseudobulk(
+#'     pbmc_small,
+#'     sample.by = "groups",
+#'     cell.by = "RNA_snn_res.0.8",
+#'     output.style = "raw"
+#' )
+#' expr <- GetAssayData(pbmc_small, layer = 'counts')
+#' run_dge(
+#'     counts = pseudo$counts, metadata = pseudo$metadata,
+#'     method = 'deseq2',
+#'     dge_by = 'groups',
+#'     cell_by = 'RNA_snn_res.0.8',
+#'     case_group = 'g1',
+#'     reference_group = 'g2'
+#' )
+#'
+run_dge <- function(
+    counts,
+    metadata,
+    dge_by,
+    method = c('deseq2', 'dreamlet', 'edger', 'mast', 'limma', 'voom'),
+    cell_by = NULL,
+    case_group = NULL,
+    reference_group = NULL,
+    cell_targets = NULL,
+    contrasts = NULL,
+    dge_groups = c(case_group, reference_group),
+    fixed_effects = NULL,
+    random_effects = NULL,
+    min_frac = 0.6,
+    return_model = FALSE
+) {
 
     # Ensures the value of method is among the options given as default, or sets to the first, deseq2, if none was set.
     method <- match.arg(method)
@@ -93,7 +118,9 @@ run_dge <- function(counts,
         'deseq2' = run_deseq2,
         'dreamlet' = run_dreamlet,
         'edger' = run_edger,
-        'mast' = run_mast
+        'mast' = run_mast,
+        'limma' = run_limmavoom,
+        'voom' = run_limma_voom
     )
 
     # Collect input arguments in a list for passing arguments to downstream functions easily
@@ -125,21 +152,34 @@ run_dge <- function(counts,
     dge_results = list()
 
     for(ct in cell_types) {
+        ts_log("Working on celltype '", ct, "'")
         # Subset to data specific to a cell-type
-        input_args[['counts']] = input_args$counts[, input_args$metadata[, input_args$cell_by] == ct ]
-        input_args[['metadata']] = input_args$metadata[ input_args$metadata[, input_args$cell_by] == ct, ]
+        ct_args <- input_args
+        ct_args[['counts']] <- ct_args$counts[, ct_args$metadata[, ct_args$cell_by] == ct ]
+        ct_args[['metadata']] = ct_args$metadata[ ct_args$metadata[, ct_args$cell_by] == ct, ]
 
         # Remove lowly expressed genes
-        input_args[['counts']] =
+        ct_args[['counts']] <-
             do.call(
                 .remove_low_expression,
-                input_args[ names(input_args) %in% names(formals(.remove_low_expression)) ]
+                ct_args[ names(ct_args) %in% names(formals(.remove_low_expression)) ]
             )
+        if (nrow(ct_args[['counts']]) <1) {
+            warning("Zero genes passed expression cutoffs for celltype '", ct, "'.  Returning NA, and moving on.")
+            dge_results[[ct]] <- NA
+            next
+        }
 
         # Perform DGE analysis
-        dge_results[[ct]] <- do.call(
-            dge_fxn,
-            input_args[ names(input_args) %in% names(formals(dge_fxn)) ]
+        dge_results[[ct]] <- tryCatch(
+            do.call(
+                dge_fxn,
+                ct_args[ names(ct_args) %in% names(formals(dge_fxn)) ]
+            ),
+            error = function(e) {
+                warning("Running dge for celltype '", ct, "' yielded an error.  Returning NA, and moving on. The error: ", e$message)
+                NA
+            }
         )
     }
 
