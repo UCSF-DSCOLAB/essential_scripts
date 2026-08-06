@@ -4,12 +4,17 @@
 #' @param counts A feature (row) x sample (column) raw count matrix. Only samples intended for DGE analysis should be included in \code{counts}.
 #' @param metadata Sample metadata, with rownames containing column names of \code{counts}.
 #' @param dge_by Name of \code{metadata} column to use DGE comparion. Must have exactly two levels.
+#' @param method Name of DGE method to use. One of "deseq2", "dreamlet", "edger", or "mast".
+#' @param cell_by Name of \code{metadata} column to use for cell grouping.
+#' @param sample_by Name of \code{metadata} column to use for sample grouping. 
+#' @param metadata_cell_count Metadata column for cell counts in pseudobulk. Default is 'cells_in_pseudobulk'.
 #' @param case_group Group to be used as numerator in log2FC calculation.
 #' @param reference_group Group to be used as denominator in log2FC calculation.
-#' @param fixed_effects A vector of \code{metadata} column names to use as fixed effects.
-#' @param random_effects A vector of \code{metadata} column names to use as random effects.
+#' @param cell_targets NULL or vector of cell types to use for DGE analysis. If NULL, all cell types in \code{cell_by} will be used.
 #' @param contrasts NULL or the set of contrasts to extract from a model. must be formatted as a named list.
 #' @param dge_groups NULL or the vector of group names from dge_by column that should be used for filtering out lowly expressed genes
+#' @param fixed_effects A vector of \code{metadata} column names to use as fixed effects.
+#' @param random_effects A vector of \code{metadata} column names to use as random effects.
 #' @param min_frac Minimum proportion of samples required to have at least MIN.COUNT counts per gene.
 #' @param return_model Boolean indicating whether the function should return the model or the DGE result data frame.
 #' @details Under construction, but will: match \code{metadata} rows to \code{counts} columns; trim genes by expression minimums; more; and finally return adjusted \code{counts}, \code{metadata}, and \code{contrasts}.
@@ -19,6 +24,8 @@
     dge_by,
     method,
     cell_by,
+    sample_by,
+    metadata_cell_count,
     case_group,
     reference_group,
     cell_targets,
@@ -46,6 +53,11 @@
     vars <- unique(c(dge_by, fixed_effects, random_effects))
     if(is.null(vars)) stop("Validation Error: No variables provided for DGE analysis.")
     if(any(grepl(" ", vars)) | any(grepl("[^a-zA-Z0-9_]", vars))) stop("Validation Error: One or more of dge_by, fixed_effects, random_effects elements contain spaces or special characters.")
+
+    # check cell_by, sample_by, and metadata_cell_count are in metadata
+    if(! is.null(cell_by) & ! cell_by %in% colnames(metadata)) stop("Validation Error: cell_by column does not exist in metadata.")
+    if(! is.null(sample_by) & ! sample_by %in% colnames(metadata)) stop("Validation Error: sample_by column does not exist in metadata.")
+    if(! is.null(metadata_cell_count) & ! metadata_cell_count %in% colnames(metadata)) stop("Validation Error: metadata_cell_count column does not exist in metadata.")
 
     # check min_frac is numeric and between 0 and 1
     if (!is.numeric(min_frac) | min_frac < 0 | min_frac > 1) stop("Error. min_frac of ", min_frac, " is not a numeric value between 0 and 1.")

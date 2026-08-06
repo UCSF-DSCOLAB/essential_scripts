@@ -98,6 +98,8 @@ run_dge <- function(
     dge_by,
     method = c('deseq2', 'dreamlet', 'edger', 'mast', 'limma', 'voom'),
     cell_by = NULL,
+    sample_by = NULL,
+    metadata_cell_count = 'cells_in_pseudobulk',
     case_group = NULL,
     reference_group = NULL,
     cell_targets = NULL,
@@ -130,6 +132,8 @@ run_dge <- function(
         dge_by = dge_by,
         method = method,
         cell_by = cell_by,
+        sample_by = sample_by,
+        metadata_cell_count = metadata_cell_count,
         case_group = case_group,
         reference_group = reference_group,
         cell_targets = cell_targets,
@@ -157,6 +161,7 @@ run_dge <- function(
         ct_args <- input_args
         ct_args[['counts']] <- ct_args$counts[, ct_args$metadata[, ct_args$cell_by] == ct ]
         ct_args[['metadata']] = ct_args$metadata[ ct_args$metadata[, ct_args$cell_by] == ct, ]
+        ct_args[['cell_target']] = ct
 
         # Remove lowly expressed genes
         ct_args[['counts']] <-
