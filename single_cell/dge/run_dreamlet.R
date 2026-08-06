@@ -1,5 +1,3 @@
-source('helpers_load.R')
-
 ### This script provides a function to run dreamlet based on pseudobulked data.
 #'
 #' @param counts matrix of pseudobulked count data where columns are samples and rows are genes
@@ -28,22 +26,7 @@ run_dreamlet = function(counts, metadata, dge_by=NULL, case_group=NULL, referenc
 	     fixed_effects=NULL, random_effects=NULL, 
        min_frac=0.6, MIN.COUNT=5, return_model=F){
 
-  .input_checks(counts, metadata, dge_by, case_group, reference_group, contrasts, dge_groups, fixed_effects, random_effects, min_frac, return_model)
  
-  # check MIN.COUNT is numeric and greater than 0
-  if (!is.numeric(MIN.COUNT) | MIN.COUNT < 0)  stop("Error. MIN.COUNT of ", MIN.COUNT, " is not a positive numeric value")
-  # NOTE do we want to use MIN.COUNT across all functions?
-  
-  counts = .remove_low_expression_genes(counts, metadata, dge_by, dge_groups, min_frac)
-
-  # filter based on dge_groups 
-  if (!is.null(dge_groups)) {
-    sample_idx = metadata[, dge_by] %in% dge_groups
-    counts = counts[, sample_idx]
-    metadata = metadata[sample_idx, ]
-  }
-  metadata = .format_dge_groups(metadata, dge_by, case_group, reference_group)
-
   # create an object from the pb counts and metadata
   pb = SingleCellExperiment::SingleCellExperiment(assays=list(counts=as.matrix(counts)),
                                                     colData=metadata)
