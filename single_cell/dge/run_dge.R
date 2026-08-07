@@ -19,7 +19,9 @@
 #'   containing the sample group labels used to define the DGE comparison
 #'   (e.g., case vs. reference).
 #' @param method Character string specifying the DGE method to use. One of
-#'   \code{"deseq2"}, \code{"dreamlet"}, \code{"edger"}, or \code{"mast"}.
+#'   \code{"deseq2"}, \code{"dreamlet"}, \code{"edger"}, \code{"mast"},
+#'   \code{"limma"}, or \code{"voom"}. The latter two are aliases for the
+#'   limma-voom implementation.
 #' @param cell_by Character string giving the name of the metadata column
 #'   containing cell-type or cluster annotations, used to iterate the DGE
 #'   analysis over each cell-type separately. If \code{NULL}, \code{counts}
@@ -119,7 +121,7 @@ run_dge <- function(
         'dreamlet' = run_dreamlet,
         'edger' = run_edger,
         'mast' = run_mast,
-        'limma' = run_limmavoom,
+        'limma' = run_limma_voom,
         'voom' = run_limma_voom
     )
 
