@@ -109,3 +109,4 @@ Note: All files deemed share-worthy can be referenced in this table, but only fi
 | single_cell/CITEseq/process/function.R | When `source()`'d, defines an R function for subclustering Seurat CITEseq data. A script.R is also included to provide example usage. | Dan | db/scrna-process |
 | single_cell/RNAseq/process/function.R | When `source()`'d, defines an R function for subclustering Seurat RNAseq data. A script.R is also included to provide example usage. | Dan | db/scrna-process |
 | single_cell/RNAseq/dgeMAST_function.R | When `source()`'d, defines an R function dgeMAST() for performing MAST DGE across categories, within cell types, with flexible modeling. | Dan | db/sc-dge-mast |
+| single_cell/enrichment_heatmap.R | When `source()`'d, defines a set of R functions for visualizing a summary of gene set/pathway enrichment results in a heatmap format. | Ravi | ravipatel4-enrichment-heatmap |
