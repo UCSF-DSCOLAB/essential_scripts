@@ -57,7 +57,9 @@
     # check cell_by, sample_by, and metadata_cell_count are in metadata
     if(! is.null(cell_by) & ! cell_by %in% colnames(metadata)) stop("Validation Error: cell_by column does not exist in metadata.")
     if(! is.null(sample_by) & ! sample_by %in% colnames(metadata)) stop("Validation Error: sample_by column does not exist in metadata.")
-    if(! is.null(metadata_cell_count) & ! metadata_cell_count %in% colnames(metadata)) stop("Validation Error: metadata_cell_count column does not exist in metadata.")
+    if (method=="dreamlet" & ! metadata_cell_count %in% colnames(metadata)) stop("Validation Error: metadata_cell_count column does not exist in metadata and is required for dreamlet.")
+    if (method=="dreamlet" & is.null(cell_by)) stop("Validation Error: cell_by must be provided for dreamlet.")
+    if (method=="dreamlet" & is.null(sample_by)) stop("Validation Error: sample_by must be provided for dreamlet.")
 
     # check min_frac is numeric and between 0 and 1
     if (!is.numeric(min_frac) | min_frac < 0 | min_frac > 1) stop("Error. min_frac of ", min_frac, " is not a numeric value between 0 and 1.")
