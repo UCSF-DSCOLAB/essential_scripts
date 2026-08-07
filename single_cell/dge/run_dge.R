@@ -99,7 +99,7 @@ run_dge <- function(
     method = c('deseq2', 'dreamlet', 'edger', 'mast', 'limma', 'voom'),
     cell_by = NULL,
     sample_by = NULL,
-    metadata_cell_count = 'cells_in_pseudobulk',
+    metadata_cell_count = NULL,
     case_group = NULL,
     reference_group = NULL,
     cell_targets = NULL,

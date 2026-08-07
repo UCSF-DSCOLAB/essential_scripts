@@ -7,7 +7,7 @@
 #' @param method Name of DGE method to use. One of "deseq2", "dreamlet", "edger", or "mast".
 #' @param cell_by Name of \code{metadata} column to use for cell grouping.
 #' @param sample_by Name of \code{metadata} column to use for sample grouping. 
-#' @param metadata_cell_count Metadata column for cell counts in pseudobulk. Default is 'cells_in_pseudobulk'.
+#' @param metadata_cell_count Metadata column for cell counts in pseudobulk. 
 #' @param case_group Group to be used as numerator in log2FC calculation.
 #' @param reference_group Group to be used as denominator in log2FC calculation.
 #' @param cell_targets NULL or vector of cell types to use for DGE analysis. If NULL, all cell types in \code{cell_by} will be used.
