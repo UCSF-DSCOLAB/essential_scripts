@@ -1,4 +1,13 @@
 source(file.path("single_cell", "dge", "run_limma_voom.R"))
+source(file.path("R_utils", "ts_log.R"))
+for (helper in list.files(
+    file.path("single_cell", "dge", "helper_functions"),
+    pattern = "[.]R$",
+    full.names = TRUE
+)) {
+    source(helper)
+}
+source(file.path("single_cell", "dge", "run_dge.R"))
 
 set.seed(101)
 sample_ids <- paste0("sample_", seq_len(12))
@@ -101,3 +110,29 @@ multiple_random_effects_error <- tryCatch(
     error = function(error) TRUE
 )
 stopifnot(multiple_random_effects_error)
+
+# Verify that the unified wrapper dispatches the limma method and forwards
+# fixed and random effects to run_limma_voom().
+metadata$cell_type <- "test_cell"
+pipeline_results <- suppressWarnings(run_dge(
+    counts = counts,
+    metadata = metadata,
+    dge_by = "condition",
+    method = "limma",
+    cell_by = "cell_type",
+    case_group = "case",
+    reference_group = "reference",
+    cell_targets = "test_cell",
+    fixed_effects = "batch",
+    random_effects = "patient",
+    min_frac = 0.5,
+    return_model = FALSE
+))
+stopifnot(
+    identical(names(pipeline_results), "test_cell"),
+    is.data.frame(pipeline_results[["test_cell"]]),
+    identical(
+        colnames(pipeline_results[["test_cell"]]),
+        c("gene", "log2FC", "avgExpr", "pval", "padj")
+    )
+)
