@@ -106,14 +106,16 @@ make_enrichment_heatmap <- function(df, order_by = c("leadingEdge", "padj"),
       pathway = factor(pathway, levels = rev(row_order)),   # reverse for top-to-bottom in ggplot
       dataset   = factor(dataset, levels = col_order)
     )
-  
+
+  # Set the range of signed padj so that the yellow color of RdBu falls on zero.
+  max_val = max(abs(df$padj_signed))
   
   gg <- ggplot(df, aes(x = dataset, y = pathway, fill = padj_signed, text = leadingEdge)) +
     geom_tile() +
     labs(x = "Cell types", y = "Pathways", title = plot_title) +
     theme_minimal() +
     theme(axis.text.x = element_text(angle=45, vjust=1, hjust=1)) + 
-    scale_fill_distiller(palette = "RdBu")
+    scale_fill_distiller(palette = "RdBu", limits = c(-max_val, max_val))
   
   
   # assume your interactive object is:
