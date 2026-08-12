@@ -63,6 +63,8 @@
 
     # check min_frac is numeric and between 0 and 1
     if (!is.numeric(min_frac) | min_frac < 0 | min_frac > 1) stop("Error. min_frac of ", min_frac, " is not a numeric value between 0 and 1.")
+    # check min_exp is numeric and a positive value
+    if (!is.numeric(min_exp) | min_exp < 0) stop("Error. min_exp of ", min_exp, " is not a numeric value greater than 0.")
     # check return_model is boolean
     if (!is.logical(return_model)) stop("Validation Error: return_model of ", return_model, " is not a boolean value.")
 

@@ -45,8 +45,12 @@
 #' @param random_effects Character vector of metadata column name(s) to
 #'   include as random effects in the DGE model (e.g., for mixed models
 #'   such as \code{dreamlet}).
+#' @param min_exp Minimum expression cutoff, in counts per million (CPM), used
+#'   to define whether a gene is expressed in a sample. Genes must have
+#'   \code{CPM > min_exp} in the required number of samples. Default is
+#'   \code{1}.
 #' @param min_frac Numeric threshold (between 0 and 1) specifying the
-#'   minimum fraction of samples that must have CPM > 1 for a gene to be
+#'   minimum fraction of samples that must have CPM > min_exp for a gene to be
 #'   retained for DGE testing. Default is \code{0.6}.
 #' @param return_model Logical indicating whether to return the fitted
 #'   model object instead of the DGE results data.frame. Default is
@@ -109,6 +113,7 @@ run_dge <- function(
     dge_groups = c(case_group, reference_group),
     fixed_effects = NULL,
     random_effects = NULL,
+    min_exp = 1,
     min_frac = 0.6,
     return_model = FALSE
 ) {
@@ -143,6 +148,7 @@ run_dge <- function(
         dge_groups = dge_groups,
         fixed_effects = fixed_effects,
         random_effects = random_effects,
+	min_exp = min_exp,
         min_frac = min_frac,
         return_model = return_model
     )
