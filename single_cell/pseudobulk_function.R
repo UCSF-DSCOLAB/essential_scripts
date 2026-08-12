@@ -2,21 +2,21 @@
 #
 #' Standardized Pseudobulk Implementations
 #' @param object A Seurat object
-#' @param sample.by String or string vector naming metadata columns of \code{object} to use for assigning sample identities of cells.
+#' @param sample_by String or string vector naming metadata columns of \code{object} to use for assigning sample identities of cells.
 #' A biospecimen, timepoint, or subject name is the common target here, and a batch identifier may be desired as well.
-#' @param cell.by String naming the metadata column of \code{object} to use for assigning annotation or cluster identities of cells.
-#' @param min.cells Number, 10 by default, which sets the minimum number of cells that a pseudobulk should represent in order to be retained.
-#' @param cell.targets Optionally, a string vector naming particular \code{cell.by} values to target. Only these cell identities will be retained and pseudobulked.
+#' @param cell_by String naming the metadata column of \code{object} to use for assigning annotation or cluster identities of cells.
+#' @param min_cells Number, 10 by default, which sets the minimum number of cells that a pseudobulk should represent in order to be retained.
+#' @param cell_targets Optionally, a string vector naming particular \code{cell.by} values to target. Only these cell identities will be retained and pseudobulked.
 #' @param features Optionally, a string vector naming a subset of genes to target. Only counts of these genes will be retained in pseudobulking.
 #' @param assay String naming the assay of \code{object} to target. Default is "RNA".
-#' @param meta.targets Optionally, a string vector naming particular metadata columns of \code{object} to target for retention. By default, as much a possible will be retained.
-#' @param meta.num.summary.method Function like \code{\link[base]{mean}} or \code{\link[base]{median}} (with an \code{na.rm = TRUE} option) describing how to summarize numeric metadata from all cells of each pseudobulk
+#' @param meta_targets Optionally, a string vector naming particular metadata columns of \code{object} to target for retention. By default, as much a possible will be retained.
+#' @param meta_num_summary_method Function like \code{\link[base]{mean}} or \code{\link[base]{median}} (with an \code{na.rm = TRUE} option) describing how to summarize numeric metadata from all cells of each pseudobulk
 #' @param method "Seurat", "scuttle", or "dreamlet". Determines which pseudobulking tool to rely on. \itemize{
 #' \item "Seurat" = \code{\link[Seurat]{AggregateExpression}}
 #' \item Others planned but not yet implemented
 #' }
-#' @param output.style "Seurat" or "raw". Determines how data should be returned. Either as a Seurat object, or as a raw list of the 'counts' (matrix) and 'metadata' (data.frame)
-#' @param output.metadata.cell.count String denoting the metadata column name added to hold the number of original cells going into each pseudobulk
+#' @param output_style "Seurat" or "raw". Determines how data should be returned. Either as a Seurat object, or as a raw list of the 'counts' (matrix) and 'metadata' (data.frame)
+#' @param output_metadata_cell_count String denoting the metadata column name added to hold the number of original cells going into each pseudobulk
 #' @param verbose Logical which controls whether timestamped log messages should be shown
 #' @return A Seurat object or, if \code{output.style = 'raw'} a named list with elements 'counts' and 'metadata'.
 #' @details
@@ -32,9 +32,9 @@
 #'
 #' The number of cells that each pseudbulk represents are added to a metadata named 'cells_in_pseudobulk' by default.
 #' Use \code{output.metadata.cell.count} to use a different column name.
-#' \emph{Pseudobulks representing fewer than \code{min.cells} cells are removed.}
+#' \emph{Pseudobulks representing fewer than \code{min_cells} cells are removed.}
 #'
-#' \code{meta.targets}, or all metadata or \code{object} are then extracted for each pseudobulk.
+#' \code{meta_targets}, or all metadata or \code{object} are then extracted for each pseudobulk.
 #' For discrete metadata, the column will be ignored if data are not consistent within ALL pseudobulks.
 #' For numeric metadata, values from each cell in the pseudobulks are summarized by the \code{meta.num.summary.method} function (\code{\link[base]{median}} by default).
 #'
@@ -52,19 +52,19 @@
 #' )
 #'
 dsco_pseudobulk <- function(
-    object, sample.by, cell.by,
-    min.cells = 10,
-    cell.targets = NULL, features = NULL,
-    meta.targets = NULL,
+    object, sample_by, cell_by,
+    min_cells = 10,
+    cell_targets = NULL, features = NULL,
+    meta_targets = NULL,
     assay = "RNA",
     method = c('Seurat', 'scuttle', 'dreamlet'),
-    meta.num.summary.method = median,
-    output.style = c('Seurat', 'raw'),
-    output.metadata.cell.count = 'cells_in_pseudobulk',
+    meta_num_summary_method = median,
+    output_style = c('Seurat', 'raw'),
+    output_metadata_cell_count = 'cells_in_pseudobulk',
     verbose = TRUE
 ) {
     method <- match.arg(method)
-    output.style <- match.arg(output.style)
+    output_style <- match.arg(output_style)
 
     orig_metas <- colnames(object@meta.data)
 
@@ -78,22 +78,22 @@ dsco_pseudobulk <- function(
         msg_if <- function(...) {}
     }
 
-    # Ensure all of cell.by and sample.by exist as metadata
-    if (!all(c(cell.by, sample.by) %in% orig_metas)) {
-        stop("A 'cell.by' or 'sample.by' element does not exist as a column the 'object' metadata.")
+    # Ensure all of cell_by and sample_by exist as metadata
+    if (!all(c(cell_by, sample_by) %in% orig_metas)) {
+        stop("A 'cell_by' or 'sample_by' element does not exist as a column the 'object' metadata.")
     }
     # Ensure assay exists
     if (!assay %in% Seurat::Assays(object)) {
         stop("'assay' is not a valid assay of the 'object'.")
     }
 
-    # Trim to 'cell.targets'
-    if (!is.null(cell.targets)) {
-        object <- object[,object@meta.data[,cell.by] %in% cell.targets]
+    # Trim to 'cell_targets'
+    if (!is.null(cell_targets)) {
+        object <- object[,object@meta.data[,cell_by] %in% cell_targets]
         retained_cell_num <- ncol(object)
-        retained_cell_idents <- unique(object@meta.data[,cell.by])
+        retained_cell_idents <- unique(object@meta.data[,cell_by])
         msg_if(
-            "Trimming to 'cell.targets' retained ", retained_cell_num,
+            "Trimming to 'cell_targets' retained ", retained_cell_num,
             " cells of identities:\n", paste0(retained_cell_idents, collapse=", ")
         )
     }
@@ -102,22 +102,22 @@ dsco_pseudobulk <- function(
     # (Trim to features internally)
     if (method == 'Seurat') {
         msg_if("Initiating pseudobulking with Seurat's AggregateExpression...")
-        group.metas <- c(sample.by, cell.by)
+        group_metas <- c(sample_by, cell_by)
         if (packageVersion('Seurat')>'5.0') {
             psobject <- Seurat::AggregateExpression(
-                object = object, return.seurat = TRUE, group.by = group.metas,
+                object = object, return.seurat = TRUE, group.by = group_metas,
                 features = features,
                 assays = assay)
         } else {
             psobject <- Seurat::AggregateExpression(
-                object = object, return.seurat = TRUE, group.by = group.metas,
+                object = object, return.seurat = TRUE, group.by = group_metas,
                 features = features,
                 assays = assay,
                 slot = "counts")
             # Prior versions do not retain group.by metadata
-            expected_name <- apply(object@meta.data[,group.metas], 1, FUN = function(x) {paste(x, collapse = "_")})
+            expected_name <- apply(object@meta.data[,group_metas], 1, FUN = function(x) {paste(x, collapse = "_")})
             ind_match <- match(colnames(psobject), expected_name)
-            for (col in group.metas) {
+            for (col in group_metas) {
                 psobject@meta.data[col] <- object@meta.data[ind_match,col]
             }
         }
@@ -131,33 +131,34 @@ dsco_pseudobulk <- function(
         }
 
         ### Add cell counts and Trim too small pseudobulks
-        msg_if("Adding cell counts as metadata '", output.metadata.cell.count, "'.")
-        psobject@meta.data[,output.metadata.cell.count] <- vapply(
+        msg_if("Adding cell counts as metadata '", output_metadata_cell_count, "'.")
+        psobject@meta.data[,output_metadata_cell_count] <- vapply(
             seq_len(ncol(psobject)),
             function(i) {
-                sum(find_cells_in_pseudo(object, psobject, group.metas, i))
+                sum(find_cells_in_pseudo(object, psobject, group_metas, i))
             },
             numeric(1)
         )
-        num_small <- sum(psobject@meta.data[,output.metadata.cell.count] < min.cells)
+        num_small <- sum(psobject@meta.data[,output_metadata_cell_count] < min_cells)
         if (num_small == ncol(psobject)) {
             warning(paste0("Skipping triming pseudobulks smaller than 'min_cells' as NONE were built from more than ", min_cells, " cells."))
         } else if (num_small > 0) {
             msg_if("\tTrimming ", num_small, " pseudobulks built from fewer than ", min_cells, " cells.")
-            psobject <- psobject[,psobject@meta.data[,output.metadata.cell.count] >= min.cells]
+            psobject <- psobject[,psobject@meta.data[,output_metadata_cell_count] >= min_cells]
         }
 
-        ### Ensure meta.targets, or as many metadata as possible, are retained.
+        ### Ensure meta_targets, or as many metadata as possible, are retained.
         meta_ignored <- c()
         meta_kept <- colnames(psobject@meta.data)
-        if (is.null(meta.targets)) {
-            meta.targets <- orig_metas
+        if (is.null(meta_targets)) {
+            meta_targets <- orig_metas
         }
-        meta.targets <- meta.targets[!meta.targets %in% meta_kept]
-        msg_if("Grabbing additional metadata '", paste0(meta.targets, collapse = "', '"), "'.")
+        meta_targets = unique(c(meta_targets, output_metadata_cell_count))
+        meta_targets <- meta_targets[!meta_targets %in% meta_kept]
+        msg_if("Grabbing additional metadata '", paste0(meta_targets, collapse = "', '"), "'.")
         meta_collapse <- function(df_col, name) {
             if (is.numeric(df_col)) {
-                meta.num.summary.method(df_col, na.rm = TRUE)
+                meta_num_summary_method(df_col, na.rm = TRUE)
             } else {
                 if (name %in% meta_ignored) {
                     NA
@@ -173,8 +174,8 @@ dsco_pseudobulk <- function(
             }
         }
         for (i in seq_len(ncol(psobject))) {
-            in_pseudo <- find_cells_in_pseudo(object, psobject, group.metas, i)
-            for (meta in meta.targets) {
+            in_pseudo <- find_cells_in_pseudo(object, psobject, group_metas, i)
+            for (meta in meta_targets) {
                 if (i == 1) {
                     psobject@meta.data[,meta] <- NA
                 }
@@ -188,7 +189,7 @@ dsco_pseudobulk <- function(
 
     # Output in requested style
     msg_if("Pseudobulk function COMPLETE.")
-    if (output.style == 'Seurat') {
+    if (output_style == 'Seurat') {
         psobject
     } else {
         exp <- if (packageVersion("Seurat")>='5.0') {
