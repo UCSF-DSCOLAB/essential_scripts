@@ -15,6 +15,7 @@
 #' @param dge_groups NULL or the vector of group names from dge_by column that should be used for filtering out lowly expressed genes
 #' @param fixed_effects A vector of \code{metadata} column names to use as fixed effects.
 #' @param random_effects A vector of \code{metadata} column names to use as random effects.
+#' @param min_exp Minimum expression cutoff, in counts per million (CPM), used to define whether a gene is expressed in a sample.
 #' @param min_frac Minimum proportion of samples required to have at least MIN.COUNT counts per gene.
 #' @param return_model Boolean indicating whether the function should return the model or the DGE result data frame.
 #' @details Under construction, but will: match \code{metadata} rows to \code{counts} columns; trim genes by expression minimums; more; and finally return adjusted \code{counts}, \code{metadata}, and \code{contrasts}.
@@ -33,6 +34,7 @@
     dge_groups,
     fixed_effects,
     random_effects,
+    min_exp,
     min_frac,
     return_model
 ) {
@@ -77,6 +79,18 @@
     if (!is.null(dge_by) & is.numeric(metadata[[dge_by]])){
         warning("Warning. You have provided a numeric variable as your grouping of interest. This will be converted to a factor when calculating group size.")
     }
+    count_level <- "sample"
+    if( any(duplicated( paste(metadata[,sample_by], metadata[,cell_by]) )) ) count_level <- "cell"
+    ts_log(
+        paste0(
+            "Count data are assumed to be at the ", count_level, " level because ",
+            if (count_level == "cell") {
+                paste0("duplicate '", sample_by, "' values were found within ", "'", cell_by, "' groups.")
+            } else {
+                paste0("no duplicate '", sample_by, "' values were found within ", "'", cell_by, "' groups.")
+            }
+        )
+    )
 
     # Start outputs ahead of checks that might adjust them
     outs <- list(
@@ -100,6 +114,24 @@
         }
         ### ToDo Utilize .input_checks_contrasts()
     }
+
+    if (count_level == "sample" && method %in% c("mast", "memento")) {
+        stop(
+            method, " is intended for single-cell data, but the count data appear to be ",
+            "at the sample level. Check that `", sample_by,
+            "` correctly identifies samples and that the count matrix contains ",
+            "single-cell observations."
+        )
+    }
+    if (count_level == "cell" && ! (method %in% c("mast", "memento")) ) {
+        stop(
+            method, " is intended for sample-level data, but the count data appear to be ",
+            "single-cell data. Check that `", sample_by,
+            "` correctly identifies samples and that the count matrix contains ",
+            "sample-level observations."
+        )
+    }
+
 
     if (identical(cell_targets, NULL)) {
         outs[['cell_targets']] <- unique(metadata[,cell_by])

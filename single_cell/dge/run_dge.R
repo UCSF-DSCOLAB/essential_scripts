@@ -27,6 +27,8 @@
 #'   analysis over each cell-type separately. If \code{NULL}, \code{counts}
 #'   and \code{metadata} are assumed to represent a single cell-type or
 #'   dataset.
+#' @param sample_by Character string giving the name of the metadata column 
+#'   that identifies biological samples.
 #' @param case_group Character string giving the name of the group (a level
 #'   of \code{dge_by}) to use as the case/numerator in log2 fold-change
 #'   calculations.
