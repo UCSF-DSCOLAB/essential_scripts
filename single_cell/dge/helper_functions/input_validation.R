@@ -134,6 +134,14 @@
     }
 
 
+    # Make sure cell_targets include only those cell types that are in cell_by column
+    cell_targets <- intersect( unique(cell_targets), unique(metadata[ , cell_by]) )
+    if(length(cell_targets) == 0) {
+        warning(paste0("None of the cell_targets values are in '", cell_by, "' column of metadata. Using all cell types in '", cell_by, "' column."))
+        cell_targets <- NULL
+    }
+
+
     if (identical(cell_targets, NULL)) {
         cell_targets <- unique(metadata[,cell_by])
     }
