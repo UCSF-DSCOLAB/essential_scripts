@@ -58,7 +58,7 @@
 
     # If cell_by is NULL, assume the data is bulk RNA-seq. In this case, create a new cell_by column with a same value for all rows in metadata
     if(is.null(cell_by)) {
-	warning( paste0("Assuming the input data is bulk RNA-seq because 'cell_by' is NULL. If the input data is pseudobulk (with multiple cell types) or single-cell, provide 'cell_by' and run_dge() again.") )
+	ts_log( paste0("Warning! `cell_by` is NULL, therefore, assuming the input data represents bulk RNA-seq. If the input data represents pseudobulk (with multiple cell types) or single-cell data, provide 'cell_by' and run_dge() again.") )
         cell_by = "new_cell_by"
         metadata[,cell_by] = "bulk_data"
     }
