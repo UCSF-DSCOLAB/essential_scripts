@@ -57,13 +57,15 @@
     if(any(grepl(" ", vars)) | any(grepl("[^a-zA-Z0-9_]", vars))) stop("Validation Error: One or more of dge_by, fixed_effects, random_effects elements contain spaces or special characters.")
 
     # If cell_by is NULL, assume the data is bulk RNA-seq. In this case, create a new cell_by column with a same value for all rows in metadata
-    if(is.null(cell_by)) {
-	ts_log( paste0("Warning! `cell_by` is NULL, therefore, assuming the input data represents bulk RNA-seq. If the input data represents pseudobulk (with multiple cell types) or single-cell data, provide 'cell_by' and run_dge() again.") )
-        cell_by = "new_cell_by"
+    if(is.null(cell_by) & ! any(duplicated(metadata[, sample_by])) ) {
+	ts_log( paste0("Warning! `cell_by` is NULL, therefore, assuming the input data represents bulk RNA-seq. If the input data represents pseudobulk or single-cell data, provide 'cell_by' and run_dge() again.") )
+        cell_by = "cell_by"
         metadata[,cell_by] = "bulk_data"
+	cell_targets = c("bulk_data")
     }
 
     # check cell_by, sample_by, and metadata_cell_count are in metadata
+    if(is.null(cell_by)) stop("Validation Error: cell_by column must be provided for pseudobulk or single-cell data.")
     if(! is.null(cell_by) & ! cell_by %in% colnames(metadata)) stop("Validation Error: cell_by column does not exist in metadata.")
     if(! is.null(sample_by) & ! sample_by %in% colnames(metadata)) stop("Validation Error: sample_by column does not exist in metadata.")
     if (method=="dreamlet" & ! metadata_cell_count %in% colnames(metadata)) stop("Validation Error: metadata_cell_count column does not exist in metadata and is required for dreamlet.")
@@ -134,12 +136,13 @@
     }
 
 
-    # Make sure cell_targets include only those cell types that are in cell_by column
-    cell_targets <- intersect( unique(cell_targets), unique(metadata[ , cell_by]) )
-    if(length(cell_targets) == 0) {
-        warning(paste0("None of the cell_targets values are in '", cell_by, "' column of metadata. Using all cell types in '", cell_by, "' column."))
-        cell_targets <- NULL
-    }
+    # Check if any element of cell_targets does not exist in cell_by column. 
+    if(! all(cell_targets %in% unique(metadata[, cell_by]) ) ) stop(paste0("Following cell_targets do not exist in '", cell_by, "' metadata column.\n", paste0( setdiff(cell_targets, unique(metadata[, cell_by])), collapse=", ")))
+    #cell_targets <- intersect( unique(cell_targets), unique(metadata[ , cell_by]) )
+    #if(length(cell_targets) == 0) {
+    #    warning(paste0("None of the cell_targets values are in '", cell_by, "' column of metadata. Using all cell types in '", cell_by, "' column."))
+    #    cell_targets <- NULL
+    #}
 
 
     if (identical(cell_targets, NULL)) {

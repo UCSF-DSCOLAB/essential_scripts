@@ -207,6 +207,9 @@ run_dge <- function(
         )
     }
 
+    # Add sessionInfo to the output for posterity
+    dge_results$sessionInfo = sessionInfo()
+
     # Return the DGE results
     dge_results
 }
