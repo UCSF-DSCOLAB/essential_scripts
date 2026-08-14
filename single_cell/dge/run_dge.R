@@ -26,9 +26,16 @@
 #'   containing cell-type or cluster annotations, used to iterate the DGE
 #'   analysis over each cell-type separately. If \code{NULL}, \code{counts}
 #'   and \code{metadata} are assumed to represent a single cell-type or
-#'   dataset.
+#'   bulk RNA-seq dataset.
+#' @param cell_targets Optional character vector specifying values of
+#'   \code{cell_by} to include in the DGE analysis. Only observations
+#'   corresponding to these cell identities are retained. If \code{NULL},
+#'   all cell identities are included.
 #' @param sample_by Character string giving the name of the metadata column 
 #'   that identifies biological samples.
+#' @param metadata_cell_count Name of the column in \code{metadata} containing
+#'   the number of cells used to generate each pseudobulk observation. Required
+#'   when using the \code{dreamlet} method; ignored for other DGE methods.
 #' @param case_group Character string giving the name of the group (a level
 #'   of \code{dge_by}) to use as the case/numerator in log2 fold-change
 #'   calculations.
@@ -106,11 +113,11 @@ run_dge <- function(
     dge_by,
     method = c('deseq2', 'dreamlet', 'edger', 'mast', 'limma', 'voom'),
     cell_by = NULL,
+    cell_targets = NULL,
     sample_by = NULL,
     metadata_cell_count = 'cells_in_pseudobulk',
     case_group = NULL,
     reference_group = NULL,
-    cell_targets = NULL,
     contrasts = NULL,
     dge_groups = c(case_group, reference_group),
     fixed_effects = NULL,
