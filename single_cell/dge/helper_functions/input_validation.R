@@ -56,6 +56,13 @@
     if(is.null(vars)) stop("Validation Error: No variables provided for DGE analysis.")
     if(any(grepl(" ", vars)) | any(grepl("[^a-zA-Z0-9_]", vars))) stop("Validation Error: One or more of dge_by, fixed_effects, random_effects elements contain spaces or special characters.")
 
+    # If cell_by is NULL, assume the data is bulk RNA-seq. In this case, create a new cell_by column with a same value for all rows in metadata
+    if(is.null(cell_by)) {
+	warning( paste0("Assuming the input data is bulk RNA-seq because 'cell_by' is NULL. If the input data is pseudobulk (with multiple cell types) or single-cell, provide 'cell_by' and run_dge() again.") )
+        cell_by = "new_cell_by"
+        metadata[,cell_by] = "bulk_data"
+    }
+
     # check cell_by, sample_by, and metadata_cell_count are in metadata
     if(! is.null(cell_by) & ! cell_by %in% colnames(metadata)) stop("Validation Error: cell_by column does not exist in metadata.")
     if(! is.null(sample_by) & ! sample_by %in% colnames(metadata)) stop("Validation Error: sample_by column does not exist in metadata.")
@@ -81,7 +88,7 @@
     }
     count_level <- "sample"
     if( any(duplicated( paste(metadata[,sample_by], metadata[,cell_by]) )) ) count_level <- "cell"
-    ts_log(
+    warning(
         paste0(
             "Count data are assumed to be at the ", count_level, " level because ",
             if (count_level == "cell") {
@@ -92,19 +99,12 @@
         )
     )
 
-    # Start outputs ahead of checks that might adjust them
-    outs <- list(
-        counts = counts,
-        metadata = metadata,
-        contrasts = contrasts,
-        cell_targets = cell_targets
-    )
 
     if (!is.null(case_group) & !is.null(reference_group)) {
         .input_check_dge_case_ref(metadata, dge_by, case_group, reference_group)
         if (!is.null(contrasts)) {
             warning("Both contrasts and case-reference groups are given. 'contrasts' will be ignored.")
-            outs[['contrasts']] <- NULL
+            contrasts <- NULL
         }
     } else if (is.null(contrasts)) {
         stop("Validation Error: Either case_group and reference_group or contrasts must be provided for DGE analysis.")
@@ -128,19 +128,32 @@
             method, " is intended for sample-level data, but the count data appear to be ",
             "single-cell data. Check that `", sample_by,
             "` correctly identifies samples and that the count matrix contains ",
+
             "sample-level observations."
         )
     }
 
 
     if (identical(cell_targets, NULL)) {
-        outs[['cell_targets']] <- unique(metadata[,cell_by])
+        cell_targets <- unique(metadata[,cell_by])
     }
+
     ####### STUB, to be replaced with 'min_frac' usage!  And perhaps other per-cell checks.
-    if (any(table(metadata[,cell_by])[outs[['cell_targets']]] <= 5)) {
+    if (any(table(metadata[,cell_by])[cell_targets] <= 5)) {
         cells <- table(metadata[,cell_by])
-        outs[['cell_targets']] <- names(cells)[cells>5]
+        cell_targets <- names(cells)[cells>5]
     }
+
+
+    # Set updated values in outs for sending returning
+    outs <- list(
+        counts = counts,
+        metadata = metadata,
+        contrasts = contrasts,
+        cell_targets = cell_targets,
+        cell_by = cell_by
+    )
+
 
     outs
 }
