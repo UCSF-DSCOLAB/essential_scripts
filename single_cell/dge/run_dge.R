@@ -26,7 +26,16 @@
 #'   containing cell-type or cluster annotations, used to iterate the DGE
 #'   analysis over each cell-type separately. If \code{NULL}, \code{counts}
 #'   and \code{metadata} are assumed to represent a single cell-type or
-#'   dataset.
+#'   bulk RNA-seq dataset.
+#' @param cell_targets Optional character vector specifying values of
+#'   \code{cell_by} to include in the DGE analysis. Only observations
+#'   corresponding to these cell identities are retained. If \code{NULL},
+#'   all cell identities are included.
+#' @param sample_by Character string giving the name of the metadata column 
+#'   that identifies biological samples.
+#' @param metadata_cell_count Name of the column in \code{metadata} containing
+#'   the number of cells used to generate each pseudobulk observation. Required
+#'   when using the \code{dreamlet} method; ignored for other DGE methods.
 #' @param case_group Character string giving the name of the group (a level
 #'   of \code{dge_by}) to use as the case/numerator in log2 fold-change
 #'   calculations.
@@ -45,8 +54,12 @@
 #' @param random_effects Character vector of metadata column name(s) to
 #'   include as random effects in the DGE model (e.g., for mixed models
 #'   such as \code{dreamlet}).
+#' @param min_exp Minimum expression cutoff, in counts per million (CPM), used
+#'   to define whether a gene is expressed in a sample. Genes must have
+#'   \code{CPM > min_exp} in the required number of samples. Default is
+#'   \code{1}.
 #' @param min_frac Numeric threshold (between 0 and 1) specifying the
-#'   minimum fraction of samples that must have CPM > 1 for a gene to be
+#'   minimum fraction of samples that must have CPM > min_exp for a gene to be
 #'   retained for DGE testing. Default is \code{0.6}.
 #' @param return_model Logical indicating whether to return the fitted
 #'   model object instead of the DGE results data.frame. Default is
@@ -100,15 +113,16 @@ run_dge <- function(
     dge_by,
     method = c('deseq2', 'dreamlet', 'edger', 'mast', 'limma', 'voom'),
     cell_by = NULL,
+    cell_targets = NULL,
     sample_by = NULL,
     metadata_cell_count = 'cells_in_pseudobulk',
     case_group = NULL,
     reference_group = NULL,
-    cell_targets = NULL,
     contrasts = NULL,
     dge_groups = c(case_group, reference_group),
     fixed_effects = NULL,
     random_effects = NULL,
+    min_exp = 1,
     min_frac = 0.6,
     return_model = FALSE
 ) {
@@ -143,6 +157,7 @@ run_dge <- function(
         dge_groups = dge_groups,
         fixed_effects = fixed_effects,
         random_effects = random_effects,
+	min_exp = min_exp,
         min_frac = min_frac,
         return_model = return_model
     )
@@ -152,6 +167,8 @@ run_dge <- function(
     input_args[['counts']] = validated_data[['counts']]
     input_args[['metadata']] = validated_data[['metadata']]
     input_args[['contrasts']] = validated_data[['contrasts']]
+    input_args[['cell_targets']] = validated_data[['cell_targets']]
+    input_args[['cell_by']] = validated_data[['cell_by']]
 
     # Iterate over cell-types or clusters
     cell_types = validated_data[['cell_targets']]
