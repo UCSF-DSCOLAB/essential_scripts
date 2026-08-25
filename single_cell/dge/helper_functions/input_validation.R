@@ -15,6 +15,7 @@
 #' @param dge_groups NULL or the vector of group names from dge_by column that should be used for filtering out lowly expressed genes
 #' @param fixed_effects A vector of \code{metadata} column names to use as fixed effects.
 #' @param random_effects A vector of \code{metadata} column names to use as random effects.
+#' @param min_exp Minimum expression cutoff, in counts per million (CPM), used to define whether a gene is expressed in a sample.
 #' @param min_frac Minimum proportion of samples required to have at least MIN.COUNT counts per gene.
 #' @param return_model Boolean indicating whether the function should return the model or the DGE result data frame.
 #' @details Under construction, but will: match \code{metadata} rows to \code{counts} columns; trim genes by expression minimums; more; and finally return adjusted \code{counts}, \code{metadata}, and \code{contrasts}.
@@ -33,6 +34,7 @@
     dge_groups,
     fixed_effects,
     random_effects,
+    min_exp,
     min_frac,
     return_model
 ) {
@@ -54,7 +56,16 @@
     if(is.null(vars)) stop("Validation Error: No variables provided for DGE analysis.")
     if(any(grepl(" ", vars)) | any(grepl("[^a-zA-Z0-9_]", vars))) stop("Validation Error: One or more of dge_by, fixed_effects, random_effects elements contain spaces or special characters.")
 
+    # If cell_by is NULL, assume the data is bulk RNA-seq. In this case, create a new cell_by column with a same value for all rows in metadata
+    if(is.null(cell_by) & ! any(duplicated(metadata[, sample_by])) ) {
+	ts_log( paste0("Warning! `cell_by` is NULL, therefore, assuming the input data represents bulk RNA-seq. If the input data represents pseudobulk or single-cell data, provide 'cell_by' and run_dge() again.") )
+        cell_by = "cell_by"
+        metadata[,cell_by] = "bulk_data"
+	cell_targets = c("bulk_data")
+    }
+
     # check cell_by, sample_by, and metadata_cell_count are in metadata
+    if(is.null(cell_by)) stop("Validation Error: cell_by column must be provided for pseudobulk or single-cell data.")
     if(! is.null(cell_by) & ! cell_by %in% colnames(metadata)) stop("Validation Error: cell_by column does not exist in metadata.")
     if(! is.null(sample_by) & ! sample_by %in% colnames(metadata)) stop("Validation Error: sample_by column does not exist in metadata.")
     if (method=="dreamlet" & ! metadata_cell_count %in% colnames(metadata)) stop("Validation Error: metadata_cell_count column does not exist in metadata and is required for dreamlet.")
@@ -63,6 +74,8 @@
 
     # check min_frac is numeric and between 0 and 1
     if (!is.numeric(min_frac) | min_frac < 0 | min_frac > 1) stop("Error. min_frac of ", min_frac, " is not a numeric value between 0 and 1.")
+    # check min_exp is numeric and a positive value
+    if (!is.numeric(min_exp) | min_exp < 0) stop("Error. min_exp of ", min_exp, " is not a numeric value greater than 0.")
     # check return_model is boolean
     if (!is.logical(return_model)) stop("Validation Error: return_model of ", return_model, " is not a boolean value.")
 
@@ -75,20 +88,25 @@
     if (!is.null(dge_by) & is.numeric(metadata[[dge_by]])){
         warning("Warning. You have provided a numeric variable as your grouping of interest. This will be converted to a factor when calculating group size.")
     }
-
-    # Start outputs ahead of checks that might adjust them
-    outs <- list(
-        counts = counts,
-        metadata = metadata,
-        contrasts = contrasts,
-        cell_targets = cell_targets
+    count_level <- "sample"
+    if( any(duplicated( paste(metadata[,sample_by], metadata[,cell_by]) )) ) count_level <- "cell"
+    warning(
+        paste0(
+            "Count data are assumed to be at the ", count_level, " level because ",
+            if (count_level == "cell") {
+                paste0("duplicate '", sample_by, "' values were found within ", "'", cell_by, "' groups.")
+            } else {
+                paste0("no duplicate '", sample_by, "' values were found within ", "'", cell_by, "' groups.")
+            }
+        )
     )
+
 
     if (!is.null(case_group) & !is.null(reference_group)) {
         .input_check_dge_case_ref(metadata, dge_by, case_group, reference_group)
         if (!is.null(contrasts)) {
             warning("Both contrasts and case-reference groups are given. 'contrasts' will be ignored.")
-            outs[['contrasts']] <- NULL
+            contrasts <- NULL
         }
     } else if (is.null(contrasts)) {
         stop("Validation Error: Either case_group and reference_group or contrasts must be provided for DGE analysis.")
@@ -99,14 +117,54 @@
         ### ToDo Utilize .input_checks_contrasts()
     }
 
+    if (count_level == "sample" && method %in% c("mast", "memento")) {
+        stop(
+            method, " is intended for single-cell data, but the count data appear to be ",
+            "at the sample level. Check that `", sample_by,
+            "` correctly identifies samples and that the count matrix contains ",
+            "single-cell observations."
+        )
+    }
+    if (count_level == "cell" && ! (method %in% c("mast", "memento")) ) {
+        stop(
+            method, " is intended for sample-level data, but the count data appear to be ",
+            "single-cell data. Check that `", sample_by,
+            "` correctly identifies samples and that the count matrix contains ",
+
+            "sample-level observations."
+        )
+    }
+
+
+    # Check if any element of cell_targets does not exist in cell_by column. 
+    if(! all(cell_targets %in% unique(metadata[, cell_by]) ) ) stop(paste0("Following cell_targets do not exist in '", cell_by, "' metadata column.\n", paste0( setdiff(cell_targets, unique(metadata[, cell_by])), collapse=", ")))
+    #cell_targets <- intersect( unique(cell_targets), unique(metadata[ , cell_by]) )
+    #if(length(cell_targets) == 0) {
+    #    warning(paste0("None of the cell_targets values are in '", cell_by, "' column of metadata. Using all cell types in '", cell_by, "' column."))
+    #    cell_targets <- NULL
+    #}
+
+
     if (identical(cell_targets, NULL)) {
-        outs[['cell_targets']] <- unique(metadata[,cell_by])
+        cell_targets <- unique(metadata[,cell_by])
     }
+
     ####### STUB, to be replaced with 'min_frac' usage!  And perhaps other per-cell checks.
-    if (any(table(metadata[,cell_by])[outs[['cell_targets']]] <= 5)) {
+    if (any(table(metadata[,cell_by])[cell_targets] <= 5)) {
         cells <- table(metadata[,cell_by])
-        outs[['cell_targets']] <- names(cells)[cells>5]
+        cell_targets <- names(cells)[cells>5]
     }
+
+
+    # Set updated values in outs for sending returning
+    outs <- list(
+        counts = counts,
+        metadata = metadata,
+        contrasts = contrasts,
+        cell_targets = cell_targets,
+        cell_by = cell_by
+    )
+
 
     outs
 }
