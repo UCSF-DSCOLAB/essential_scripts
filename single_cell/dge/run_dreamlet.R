@@ -28,11 +28,14 @@ run_dreamlet = function(counts, metadata, cell_by, sample_by,
 	     contrasts=NULL, dge_groups=NULL,
 	     fixed_effects=NULL, random_effects=NULL,return_model=F){
 
+  # if case_group and reference_group are provided, then order these
+  if (!is.null(case_group) & !is.null(reference_group)) {
+    metadata[,dge_by] = factor(metadata[,dge_by], levels=c(reference_group, case_group))
+  }
 
   # create an object from the pb counts and metadata
   assay_list = list(as.matrix(counts))
   assay_list = setNames(assay_list, cell_target)
-
   pb = SingleCellExperiment::SingleCellExperiment(assays=assay_list,colData=metadata)
 
   int_colData(pb)$n_cells = lapply(colData(pb)[,metadata_cell_count], function(x) {
