@@ -210,6 +210,7 @@ run_dge <- function(
 
     # Add sessionInfo to the output for posterity
     dge_results$sessionInfo = sessionInfo()
+    dge_results$input_args = input_args[ setdiff(names(input_args), c("counts","metadata")) ]
 
     # Return the DGE results
     dge_results
