@@ -136,6 +136,12 @@
     }
 
 
+    if(! is.null(random_effects) & method %in% c('edger','deseq2') ) {
+        warning(method, " does not account for random effects. Random effects (", paste0(random_effects, collapse=","), ") will be ignored." )
+        random_effects = NULL
+    } 
+
+
     # Check if any element of cell_targets does not exist in cell_by column. 
     if(! all(cell_targets %in% unique(metadata[, cell_by]) ) ) stop(paste0("Following cell_targets do not exist in '", cell_by, "' metadata column.\n", paste0( setdiff(cell_targets, unique(metadata[, cell_by])), collapse=", ")))
     #cell_targets <- intersect( unique(cell_targets), unique(metadata[ , cell_by]) )
@@ -162,7 +168,8 @@
         metadata = metadata,
         contrasts = contrasts,
         cell_targets = cell_targets,
-        cell_by = cell_by
+        cell_by = cell_by,
+	random_effects = random_effects
     )
 
 

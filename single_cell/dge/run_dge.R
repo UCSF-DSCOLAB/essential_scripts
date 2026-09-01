@@ -169,6 +169,7 @@ run_dge <- function(
     input_args[['contrasts']] = validated_data[['contrasts']]
     input_args[['cell_targets']] = validated_data[['cell_targets']]
     input_args[['cell_by']] = validated_data[['cell_by']]
+    input_args[['random_effects']] = validated_data[['random_effects']]
 
     # Iterate over cell-types or clusters
     cell_types = validated_data[['cell_targets']]
