@@ -29,7 +29,7 @@ run_deseq2 <- function(counts, metadata, dge_by, case_group, reference_group, fi
   res = results(dds, contrast = c(dge_by, case_group, reference_group)) %>% as.data.frame()
   res = arrange(res, padj)
   
-  res = dplyr::rename(res, "log2FC"="log2FoldChange", "aveExpr"="baseMean", "pval"="pvalue", "padj"="padj")
+  res = dplyr::rename(res, "log2FC"="log2FoldChange", "avgExpr"="baseMean", "pval"="pvalue", "padj"="padj") %>% rownames_to_column("gene")
 
   if(return_model) {
     return(dds)
