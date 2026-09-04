@@ -28,8 +28,9 @@ run_deseq2 <- function(counts, metadata, dge_by, case_group, reference_group, fi
   # Extract and format DGE results
   res = results(dds, contrast = c(dge_by, case_group, reference_group)) %>% as.data.frame()
   res = arrange(res, padj)
+  res$avgExpr = log2(res$baseMean + 0.5) # Using pseudocount of 0.5, similar to voom.
   
-  res = dplyr::rename(res, "log2FC"="log2FoldChange", "aveExpr"="baseMean", "pval"="pvalue", "padj"="padj")
+  res = dplyr::rename(res, "log2FC"="log2FoldChange", "pval"="pvalue", "padj"="padj") %>% rownames_to_column("gene")
 
   if(return_model) {
     return(dds)
