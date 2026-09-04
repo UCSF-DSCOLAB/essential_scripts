@@ -67,8 +67,8 @@
 #'
 #' @return If \code{return_model = FALSE}, a data.frame of DGE results (one
 #'   row per gene, per cell-type if \code{cell_by} is specified) including
-#'   log2 fold change, p-values, and adjusted p-values. If
-#'   \code{return_model = TRUE}, the fitted model object(s) instead.
+#'   log2 average expression, log2 fold-change, p-values, and adjusted p-values. 
+#'   If \code{return_model = TRUE}, the fitted model object(s) instead.
 #' @details ... Some differences to note for particular methods (edgeR implementation relies on same low expression filter, rather than edgeR-specific version)
 #'
 #' @export
