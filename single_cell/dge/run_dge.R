@@ -119,7 +119,7 @@ run_dge <- function(
     case_group = NULL,
     reference_group = NULL,
     contrasts = NULL,
-    dge_groups = c(case_group, reference_group),
+    dge_groups = c(reference_group, case_group),
     fixed_effects = NULL,
     random_effects = NULL,
     min_exp = 1,
