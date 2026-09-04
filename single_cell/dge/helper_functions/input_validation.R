@@ -92,11 +92,11 @@
     if( any(duplicated( paste(metadata[,sample_by], metadata[,cell_by]) )) ) count_level <- "cell"
     warning(
         paste0(
-            "Count data are assumed to be at the ", count_level, " level because ",
+            "Assuming count data are at the ",
             if (count_level == "cell") {
-                paste0("duplicate '", sample_by, "' values were found within ", "'", cell_by, "' groups.")
+                paste0("single-cell-level, since '", sample_by, "' values were duplicated within the ", "'", cell_by, "' group.")
             } else {
-                paste0("no duplicate '", sample_by, "' values were found within ", "'", cell_by, "' groups.")
+                paste0("sample(bulk/pseudobulk)-level, since each 'sample' value appears only once per '", cell_by, "' group.")
             }
         )
     )
@@ -118,26 +118,23 @@
     }
 
     if (count_level == "sample" && method %in% c("mast", "memento")) {
-        stop(
-            method, " is intended for single-cell data, but the count data appear to be ",
-            "at the sample level. Check that `", sample_by,
-            "` correctly identifies samples and that the count matrix contains ",
-            "single-cell observations."
+	stop("Validation Error: ",
+            method, " requires single-cell data, but counts appear aggregated at the sample ",
+            "level (e.g. bulk RNA-seq or pseudobulked data). Check `", sample_by, 
+            "` and confirm your matrix contains per-cell, not pre-aggregated, counts."
         )
     }
     if (count_level == "cell" && ! (method %in% c("mast", "memento")) ) {
-        stop(
-            method, " is intended for sample-level data, but the count data appear to be ",
-            "single-cell data. Check that `", sample_by,
-            "` correctly identifies samples and that the count matrix contains ",
-
-            "sample-level observations."
+        stop("Validation Error: ",
+            method, " requires sample-level data, but counts appear to be at the single-cell ",
+            "level (repeated cells within a sample). Check `", sample_by, "` and confirm your ",
+            "matrix has been aggregated (e.g. pseudobulked) to one value per sample."
         )
     }
 
 
     if(! is.null(random_effects) & method %in% c('edger','deseq2') ) {
-        warning(method, " does not account for random effects. Random effects (", paste0(random_effects, collapse=","), ") will be ignored." )
+        warning(method, " does not account for random effects. The specified random effect(s) (", paste0(random_effects, collapse=", "), "), will be ignored." )
         random_effects = NULL
     } 
 
