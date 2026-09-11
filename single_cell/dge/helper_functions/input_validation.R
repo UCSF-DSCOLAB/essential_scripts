@@ -83,8 +83,10 @@
     if (!is.null(dge_groups) & !all(dge_groups %in% metadata[,dge_by])) {
         stop("Validation Error: The following 'dge_groups' are not levels of the 'dge_by' column: ", paste0(dge_groups[!dge_groups %in% metadata[,dge_by]], collapse = ", "))
     } else {
-        # ToDo Filter to only dge_groups, both metadata and counts, && update docs in run_dge too to describe that the input sets both the groups modeled and also used in gene filtering.
-        # Also double-check, if setting levels from dge_groups directly, that ref and case come first in case the user manually set dge_groups differently than that.
+        # Filter to only dge_groups, both metadata and counts
+	counts = counts[, metadata[[dge_by]] %in% c(dge_groups) ]
+        metadata = metadata[ metadata[[dge_by]] %in% c(dge_groups), ]
+        # ToDo Also double-check, if setting levels from dge_groups directly, that ref and case come first in case the user manually set dge_groups differently than that.
     }
 
     if (!all(counts == as.integer(counts))) warning("Warning. The count matrix contains non-integer entries")

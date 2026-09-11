@@ -48,7 +48,8 @@
 #'   more complex or multiple comparisons are needed.
 #' @param dge_groups Character vector of group names (levels of
 #'   \code{dge_by}) to include when filtering lowly expressed genes prior to
-#'   DGE testing.
+#'   DGE testing and to be modeled in, for cases where more than two groups should
+#'   be included in learning mean-variance relationships.
 #' @param fixed_effects Character vector of metadata column name(s) to
 #'   include as fixed effects in the DGE model.
 #' @param random_effects Character vector of metadata column name(s) to
