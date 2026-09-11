@@ -45,7 +45,8 @@
   }
   min_gsize = min(table(metadata[ sample_idx, dge_by]))
   feats = names(which(rowSums(edgeR::cpm(counts[, sample_idx]) > min_exp) > round(min_gsize * min_frac, 0)))
-  cat(paste0("Number of final features: ", length(feats)), "\n")
+  removed_feats = setdiff(rownames(counts), feats)
+  cat(paste0("Number of final features: ", length(feats), " (removed ", length(removed_feats), " of ", nrow(counts) , " input features).\n"))
   counts = counts[feats,]
   return(counts)
 }

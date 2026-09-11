@@ -48,7 +48,8 @@
 #'   more complex or multiple comparisons are needed.
 #' @param dge_groups Character vector of group names (levels of
 #'   \code{dge_by}) to include when filtering lowly expressed genes prior to
-#'   DGE testing.
+#'   DGE testing and to be modeled in, for cases where more than two groups should
+#'   be included in learning mean-variance relationships.
 #' @param fixed_effects Character vector of metadata column name(s) to
 #'   include as fixed effects in the DGE model.
 #' @param random_effects Character vector of metadata column name(s) to
@@ -67,8 +68,8 @@
 #'
 #' @return If \code{return_model = FALSE}, a data.frame of DGE results (one
 #'   row per gene, per cell-type if \code{cell_by} is specified) including
-#'   log2 fold change, p-values, and adjusted p-values. If
-#'   \code{return_model = TRUE}, the fitted model object(s) instead.
+#'   log2 average expression, log2 fold-change, p-values, and adjusted p-values. 
+#'   If \code{return_model = TRUE}, the fitted model object(s) instead.
 #' @details ... Some differences to note for particular methods (edgeR implementation relies on same low expression filter, rather than edgeR-specific version)
 #'
 #' @export
@@ -169,6 +170,7 @@ run_dge <- function(
     input_args[['contrasts']] = validated_data[['contrasts']]
     input_args[['cell_targets']] = validated_data[['cell_targets']]
     input_args[['cell_by']] = validated_data[['cell_by']]
+    input_args[['random_effects']] = validated_data[['random_effects']]
 
     # Iterate over cell-types or clusters
     cell_types = validated_data[['cell_targets']]
@@ -209,6 +211,7 @@ run_dge <- function(
 
     # Add sessionInfo to the output for posterity
     dge_results$sessionInfo = sessionInfo()
+    dge_results$input_args = input_args[ setdiff(names(input_args), c("counts","metadata")) ]
 
     # Return the DGE results
     dge_results
