@@ -38,7 +38,7 @@ run_edger <- function(counts, metadata, dge_by,
   res = topTags(res, n = Inf)$table
   res = arrange(res, FDR)
   
-  res$AveExp=2^(res$logCPM)
+  res$avgExpr=res$logCPM
   res = dplyr::rename(res, "log2FC"="logFC", "pval"="PValue", "padj"="FDR")
   return(res)
 }
