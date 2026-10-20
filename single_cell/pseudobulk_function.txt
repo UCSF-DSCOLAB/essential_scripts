@@ -1,0 +1,129 @@
+Standardized Pseudobulk Implementations
+
+Description:
+
+     Standardized Pseudobulk Implementations
+
+Usage:
+
+     dsco_pseudobulk(
+       object,
+       sample.by,
+       cell.by,
+       min.cells = 10,
+       cell.targets = NULL,
+       features = NULL,
+       meta.targets = NULL,
+       assay = "RNA",
+       method = c("Seurat", "scuttle", "dreamlet"),
+       meta.num.summary.method = median,
+       output_style = c("Seurat", "raw"),
+       output_metadata_cell_count = "cells_in_pseudobulk",
+       verbose = TRUE
+     )
+     
+Arguments:
+
+  object: A Seurat object
+
+sample.by: String or string vector naming metadata columns of ‘object’
+          to use for assigning sample identities of cells. A
+          biospecimen, timepoint, or subject name is the common target
+          here, and a batch identifier may be desired as well.
+
+ cell.by: String naming the metadata column of ‘object’ to use for
+          assigning annotation or cluster identities of cells.
+
+min.cells: Number, 10 by default, which sets the minimum number of
+          cells that a pseudobulk should represent in order to be
+          retained.
+
+cell.targets: Optionally, a string vector naming particular ‘cell.by’
+          values to target. Only these cell identities will be retained
+          and pseudobulked.
+
+features: Optionally, a string vector naming a subset of genes to
+          target. Only counts of these genes will be retained in
+          pseudobulking.
+
+meta.targets: Optionally, a string vector naming particular metadata
+          columns of ‘object’ to target for retention.
+
+   assay: String naming the assay of ‘object’ to target. Default is
+          "RNA".
+
+  method: "Seurat", "scuttle", or "dreamlet". Determines which
+          pseudobulking tool to rely on.
+
+            • "Seurat" = ‘AggregateExpression’
+
+            • Others planned but not yet implemented
+
+meta.num.summary.method: Function like ‘mean’ or ‘median’ (with an
+          ‘na.rm = TRUE’ option) describing how to summarize numeric
+          metadata from all cells of each pseudobulk
+
+output_style: "Seurat" or "raw". Determines how data should be
+          returned. Either as a Seurat object, or as a raw list of the
+          'counts' (matrix) and 'meta' (data.frame)
+
+output_metadata_cell_count: String denoting the metadata name to use
+          for adding the number of original cells going into each
+          pseudobulk
+
+ verbose: Logical which controls whether log messages should be output
+
+Details:
+
+     The primary role of this function is standardizing the
+     pseudobulking process.
+
+     _It is under construction and subject to change!_
+
+     Currently, a Seurat object is expected and pseudobulking is
+     performed per the groupings given by ‘cell.by’ and any number of
+     ‘sample.by’ metadata. Pseudobulk counts reflect the sum of counts
+     across all cells that they represent.
+
+     For the ‘method = "Seurat"’ (the only method currently
+     implemented) this is done using ‘Seurat::AggregateExpression’
+     function with parameters: ‘return.seurat = TRUE, group.by =
+     c(sample.by, cell.by), features = features, assays = assay’.
+
+     The number of cells that each pseudbulk represents are added to a
+     metadata named 'cells_in_pseudobulk' by default. Use
+     ‘output_metadata_cell_count’ to use a different column name.
+     _Pseudobulks representing fewer than ‘min.cells’ cells are
+     removed._
+
+     ‘meta.targets’, or all metadata or ‘object’ are then extracted for
+     each pseudobulk. For discrete metadata, the column will be ignored
+     if data are not consistent within ALL pseudobulks. For numeric
+     metadata, values from each cell in the pseudobulks are summarized
+     by the ‘meta.num.summary.method’ function (‘median’ by default).
+
+     Finally, the output structure is determined by the ‘output_style’
+     input.
+
+     Prior to pseudobulking, particular cell identities or genes can be
+     targeted using the ‘cell.targets’ and ‘features’ inputs,
+     respectively.
+
+Value:
+
+     A Seurat object or, if ‘output_style = 'raw'’ a named list with
+     elements 'counts' and 'meta'.
+
+Author(s):
+
+     Daniel Bunis
+
+Examples:
+
+     library(Seurat)
+     dsco_pseudobulk(
+         object = pbmc_small,
+         sample.by = "groups",
+         cell.by = "RNA_snn_res.0.8"
+     )
+     
