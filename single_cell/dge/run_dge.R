@@ -61,6 +61,13 @@
 #' @param min_frac Numeric threshold (between 0 and 1) specifying the
 #'   minimum fraction of samples that must have CPM > min_exp for a gene to be
 #'   retained for DGE testing. Default is \code{0.6}.
+#' @param min_cells Integer providing the minimum number of cells for filtering
+#'   samples when DGE \code{method} runs on cells instead of pseudobulks.
+#'   Default is \code{10}.
+#' @param min_cells_frac_exp Decimal setting the minimum expression fraction for
+#'   filtering genes when DGE \code{method} runs on cells instead of
+#'   pseudobulks. Genes are kept if they meet this threshold among any
+#'   \code{dge_group}. Default is \code{0.2}.
 #' @param return_model Logical indicating whether to return the fitted
 #'   model object instead of the DGE results data.frame. Default is
 #'   \code{FALSE}.
@@ -124,6 +131,8 @@ run_dge <- function(
     random_effects = NULL,
     min_exp = 1,
     min_frac = 0.6,
+    min_cells = 10,
+    min_cells_frac_exp = 0.2,
     return_model = FALSE
 ) {
 
@@ -157,8 +166,10 @@ run_dge <- function(
         dge_groups = dge_groups,
         fixed_effects = fixed_effects,
         random_effects = random_effects,
-	min_exp = min_exp,
+        min_exp = min_exp,
         min_frac = min_frac,
+        min_cells = min_cells,
+        min_cells_frac_exp = min_cells_frac_exp,
         return_model = return_model
     )
 
@@ -182,12 +193,34 @@ run_dge <- function(
         ct_args[['metadata']] = ct_args$metadata[ ct_args$metadata[, ct_args$cell_by] == ct, ]
         ct_args[['cell_target']] = ct
 
-        # Remove lowly expressed genes
-        ct_args[['counts']] <-
-            do.call(
-                .remove_low_expression,
-                ct_args[ names(ct_args) %in% names(formals(.remove_low_expression)) ]
+        # Per cell_type filtering and validations
+        if (validated_data$count_level == 'sample') {
+            # Remove lowly expressed genes by the minimum samples expressing per each group method
+            ct_args[['counts']] <-
+                do.call(
+                    .remove_low_expression,
+                    ct_args[ names(ct_args) %in% names(formals(.remove_low_expression)) ]
+                )
+        } else {
+            # Ignore samples' cells with fewer than min_cells
+            cells_keep <- do.call(
+                .remove_low_cell_samples,
+                ct_args[ names(ct_args) %in% names(formals(.remove_low_cell_samples)) ]
             )
+            if (identical(cells_keep,NA)) {
+                # (Warning already shown by .remove_low_cell_samples)
+                dge_results[[ct]] <- NA
+                next
+            }
+            ct_args[['counts']] <- ct_args[['counts']][,cells_keep]
+            ct_args[['metadata']] <- ct_args[['metadata']][cells_keep,]
+            # Remove lowly expressed genes by a fraction of cells per group method
+            ct_args[['counts']] <-
+                do.call(
+                    .remove_low_expression_per_cells,
+                    c(ct_args[ names(ct_args) %in% names(formals(.remove_low_expression_per_cells)) ], ct = ct)
+                )
+        }
         if (nrow(ct_args[['counts']]) <1) {
             warning("Zero genes passed expression cutoffs for celltype '", ct, "'.  Returning NA, and moving on.")
             dge_results[[ct]] <- NA

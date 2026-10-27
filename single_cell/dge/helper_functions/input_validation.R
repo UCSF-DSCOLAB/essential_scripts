@@ -165,7 +165,8 @@
         metadata = metadata,
         contrasts = contrasts,
         cell_targets = cell_targets,
-        cell_by = cell_by
+        cell_by = cell_by,
+        count_level = count_level
     )
 
 
