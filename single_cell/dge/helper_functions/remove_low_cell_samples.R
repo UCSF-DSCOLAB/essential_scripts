@@ -29,7 +29,7 @@
 #'   group have been dropped.
 #' @param ct String. For logging purposes, the cell_target being assessed.
 #'
-#' @return A metadata dataframe containing only cells pass min_cells filtering.
+#' @return rownames of metadata that passing min_cells filtering.
 .remove_low_cell_samples <- function(
     metadata,
     dge_by,
