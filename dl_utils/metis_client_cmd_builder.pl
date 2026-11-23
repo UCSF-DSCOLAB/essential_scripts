@@ -19,7 +19,7 @@ Options:
   --help                Show this help message and exit
 
 Example:
-  perl path/to/metis_client_cmd_builder.pl --client-path=/c4/home/$USER/metis/bin/metis_client --cmd=restrict --file-ext=".vcf.gz .vcg.gz.tbi" --project=demo
+  perl path/to/metis_client_cmd_builder.pl --client-path=/c4/home/$USER/metis/bin/metis_client --cmd=restrict --file-ext=".vcf.gz .vcf.gz.tbi .vcf .vcf.tbi" --project=demo
   perl path/to/metis_client_cmd_builder.pl --client-path=/c4/home/$USER/metis/bin/metis_client --cmd=get --file-ext=".fastq.gz .fq.gz" --project=demo --cmd-suffix='.'
 END_HELP
     exit;
